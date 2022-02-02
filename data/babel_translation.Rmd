@@ -1,0 +1,340 @@
+---
+title: "Translation of VA data into babel format"
+author: "Output log"
+date: "10/19/2021"
+output: html_document
+---
+
+# Mali VA data
+
+### Mali VA/WHO 2017/CHAMPS_Verbal_Autopsy_Form_results.csv
+
+The raw input data were run against 26 dictionaries. The best match was:
+
+> champs2
+
+which contained 68.72% of the variables in the raw data, and among those variables had a category matching percentage of approximately 96.9%.
+
+Of 470 variables:
+
+- 324 were identified in the dictionary and underwent a name change;
+- 240 were categorical variables and underwent categorical changes.
+
+### Mali VA/WHO 2017/CHAMPS_Verbal_Autopsy_Form_v2_04_1_results.csv
+
+The raw input data were run against 26 dictionaries. The best match was:
+
+>  champs2
+
+which contained 68.58% of the variables in the raw data, and among those variables had a category matching percentage of approximately 98.82%.
+
+Of 471 variables:
+
+- 324 were identified in the dictionary and underwent a name change;
+- 240 were categorical variables and underwent categorical changes.
+
+### Mali VA/WHO 2017/CHAMPS_Verbal_Autopsy_Form_v2_04_results.csv
+
+The raw input data were run against 26 dictionaries. The best match was:
+
+> champs2
+
+which contained 68.58% of the variables in the raw data, and among those variables had a category matching percentage of approximately 97.37%.
+
+Of 471 variables:
+- 324 were identified in the dictionary and underwent a name change;
+- 240 were categorical variables and underwent categorical changes.
+
+### Mali VA/WHO 2017/VA under 4 weeks_4 weeks to 59 months_ period 14-Oct-15 to 16-Sep-17.csv
+
+New names:
+
+* `` -> ...221
+* `` -> ...222
+* `` -> ...223
+* `` -> ...224
+* `` -> ...225
+* ...
+
+The raw input data were run against 26 dictionaries. The best match was:
+
+>  va_under_4_weeks
+
+which contained 92.77% of the variables in the raw data, and among those variables had a category matching percentage of approximately 67.42%.
+
+Of 235 variables:
+
+- 218 were identified in the dictionary and underwent a name change;
+- 135 were categorical variables and underwent categorical changes.
+
+### Mali VA/WHO 2017/VA_Death_of_a_child_under_4_weeks_results_21MAR2018.csv
+
+The raw input data were run against 26 dictionaries. The best match was:
+
+> va_under_4_weeks
+
+which contained 99.09% of the variables in the raw data, and among those variables had a category matching percentage of approximately 99.37%.
+
+Of 220 variables:
+
+- 218 were identified in the dictionary and underwent a name change;
+- 135 were categorical variables and underwent categorical changes.
+
+### Mali VA/WHO 2017/VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018.csv
+ 
+The raw input data were run against 26 dictionaries. The best match was:
+ 
+> champs1
+
+which contained 99.15% of the variables in the raw data, and among those variables had a category matching percentage of approximately 99.11%.
+
+Of 235 variables:
+
+- 233 were identified in the dictionary and underwent a name change;
+- 148 were categorical variables and underwent categorical changes.
+ 
+# Gambia VA data -- BN HDSS
+
+### VA Data-Gambia Site_31Oct2017/BN HDSS/csv/VA_Child_WHO2016.csv
+ 
+The raw input data were run against 26 dictionaries. The best match was:
+
+> c16
+
+which contained 98.64% of the variables in the raw data, and among those variables had a category matching percentage of approximately 100%.
+
+Of 294 variables:
+
+- 290 were identified in the dictionary and underwent a name change;
+- 220 were categorical variables and underwent categorical changes.
+ 
+### VA Data-Gambia Site_31Oct2017/BN HDSS/csv/VA_ChildForm_WHO2012.csv
+ 
+New names:
+
+* `` -> ...264
+* `` -> ...265
+* `` -> ...266
+* `` -> ...267
+
+The raw input data were run against 26 dictionaries. The best match was:
+
+> c12_16
+
+which contained 98.5% of the variables in the raw data, and among those variables had a category matching percentage of approximately 64.8%.
+
+Of 267 variables:
+
+- 263 were identified in the dictionary and underwent a name change;
+- 202 were categorical variables and underwent categorical changes.
+ 
+### VA Data-Gambia Site_31Oct2017/BN HDSS/csv/VA_Neonates_WHO2012.csv
+ 
+New names:
+
+* `` -> ...179
+* `` -> ...180
+* `` -> ...181
+* `` -> ...182
+
+The raw input data were run against 26 dictionaries. The best match was:
+
+> n12_16
+
+which contained 94.51% of the variables in the raw data, and among those variables had a category matching percentage of approximately 99.01%.
+
+Of 182 variables:
+
+- 172 were identified in the dictionary and underwent a name change;
+- 127 were categorical variables and underwent categorical changes.
+ 
+### VA Data-Gambia Site_31Oct2017/BN HDSS/csv/VA_Neonates_WHO2016.csv
+ 
+The raw input data were run against 26 dictionaries. The best match was:
+
+> n16
+
+which contained 97.51% of the variables in the raw data, and among those variables had a category matching percentage of approximately 100%.
+
+Of 241 variables:
+
+- 235 were identified in the dictionary and underwent a name change;
+- 180 were categorical variables and underwent categorical changes.
+ 
+# Gambia VA data -- BS HDSS
+
+### VA Data-Gambia Site_31Oct2017/BS HDSS/csv/INDEPTH Child List Info_01222018.csv
+ 
+The raw input data were run against 26 dictionaries. The best match was:
+ 
+> c08_12
+
+which contained 20% of the variables in the raw data, and among those variables had a category matching percentage of approximately 100%.
+
+Of 5 variables:
+
+- 1 were identified in the dictionary and underwent a name change;
+- 0 were categorical variables and underwent categorical changes.
+ 
+### VA Data-Gambia Site_31Oct2017/BS HDSS/csv/INDEPTH NND List Info_01222018.csv
+ 
+The raw input data were run against 26 dictionaries. The best match was:
+ 
+> c08_12
+
+which contained 20% of the variables in the raw data, and among those variables had a category matching percentage of approximately 100%.
+
+Of 5 variables:
+
+- 1 were identified in the dictionary and underwent a name change;
+- 0 were categorical variables and underwent categorical changes.
+ 
+### VA Data-Gambia Site_31Oct2017/BS HDSS/csv/VA_Child_Indepth_2008-2012_clean duration.csv
+ 
+The raw input data were run against 26 dictionaries. The best match was:
+
+> c08_12
+
+which contained 75.52% of the variables in the raw data, and among those variables had a category matching percentage of approximately 95.3%.
+
+Of 192 variables:
+
+- 147 were identified in the dictionary and underwent a name change;
+- 86 were categorical variables and underwent categorical changes.
+ 
+### VA Data-Gambia Site_31Oct2017/BS HDSS/csv/VA_Child_Indepth_2008-2012.csv
+ 
+The raw input data were run against 26 dictionaries. The best match was:
+
+> c08_12
+
+which contained 75.52% of the variables in the raw data, and among those variables had a category matching percentage of approximately 95.3%.
+
+Of 192 variables:
+
+- 147 were identified in the dictionary and underwent a name change;
+- 86 were categorical variables and underwent categorical changes.
+ 
+### VA Data-Gambia Site_31Oct2017/BS HDSS/csv/VA_Child_WHO2012-mid 2016.csv
+ 
+New names:
+
+* `` -> ...264
+* `` -> ...265
+* `` -> ...266
+* `` -> ...267
+
+The raw input data were run against 26 dictionaries. The best match was:
+
+> c12_16
+
+which contained 98.5% of the variables in the raw data, and among those variables had a category matching percentage of approximately 98.57%.
+
+Of 267 variables:
+
+- 263 were identified in the dictionary and underwent a name change;
+- 202 were categorical variables and underwent categorical changes.
+ 
+### VA Data-Gambia Site_31Oct2017/BS HDSS/csv/VA_Child_WHO2016_corrdate.csv
+ 
+The raw input data were run against 26 dictionaries. The best match was:
+
+> c16
+
+which contained 98.64% of the variables in the raw data, and among those variables had a category matching percentage of approximately 98.44%.
+
+Of 294 variables:
+
+- 290 were identified in the dictionary and underwent a name change;
+- 220 were categorical variables and underwent categorical changes.
+ 
+### VA Data-Gambia Site_31Oct2017/BS HDSS/csv/VA_Child_WHO2016.csv
+ 
+The raw input data were run against 26 dictionaries. The best match was:
+
+> c16
+
+which contained 98.64% of the variables in the raw data, and among those variables had a category matching percentage of approximately 98.44%.
+
+Of 294 variables:
+
+- 290 were identified in the dictionary and underwent a name change;
+- 220 were categorical variables and underwent categorical changes.
+ 
+
+### VA Data-Gambia Site_31Oct2017/BS HDSS/csv/VA_Neonates_Indepth_2008-2012_clean duration.csv
+ 
+The raw input data were run against 26 dictionaries. The best match was:
+
+> n08_12
+
+which contained 76.84% of the variables in the raw data, and among those variables had a category matching percentage of approximately 94.23%.
+
+Of 177 variables:
+
+- 137 were identified in the dictionary and underwent a name change;
+- 73 were categorical variables and underwent categorical changes.
+ 
+
+### VA Data-Gambia Site_31Oct2017/BS HDSS/csv/VA_Neonates_Indepth_2008-2012.csv
+ 
+The raw input data were run against 26 dictionaries. The best match was:
+
+> n08_12
+
+which contained 76.84% of the variables in the raw data, and among those variables had a category matching percentage of approximately 94.23%.
+
+Of 177 variables:
+
+- 137 were identified in the dictionary and underwent a name change;
+- 73 were categorical variables and underwent categorical changes.
+ 
+
+### VA Data-Gambia Site_31Oct2017/BS HDSS/csv/VA_Neonates_WHO2012-mid-2016.csv
+ 
+New names:
+
+* `` -> ...179
+* `` -> ...180
+* `` -> ...181
+* `` -> ...182
+
+The raw input data were run against 26 dictionaries. The best match was:
+ 
+> n12_16
+
+which contained 94.51% of the variables in the raw data, and among those variables had a category matching percentage of approximately 98.95%.
+
+Of 182 variables:
+
+- 172 were identified in the dictionary and underwent a name change;
+- 127 were categorical variables and underwent categorical changes.
+ 
+
+### VA Data-Gambia Site_31Oct2017/BS HDSS/csv/VA_Neonates_WHO2016_corrdate.csv
+ 
+The raw input data were run against 26 dictionaries. The best match was:
+
+> n16
+
+which contained 97.51% of the variables in the raw data, and among those variables had a category matching percentage of approximately 98.49%.
+
+Of 241 variables:
+
+- 235 were identified in the dictionary and underwent a name change;
+- 180 were categorical variables and underwent categorical changes.
+ 
+
+### VA Data-Gambia Site_31Oct2017/BS HDSS/csv/VA_Neonates_WHO2016.csv
+ 
+The raw input data were run against 26 dictionaries. The best match was:
+
+> n16
+
+which contained 97.51% of the variables in the raw data, and among those variables had a category matching percentage of approximately 98.49%.
+
+Of 241 variables:
+
+- 235 were identified in the dictionary and underwent a name change;
+- 180 were categorical variables and underwent categorical changes.
+ 
