@@ -1,0 +1,408 @@
+---
+title: "VA Diarrhea Statistics"
+author: "VIDA Project"
+date: "`r Sys.time()`"
+output:
+  html_document:
+    theme: yeti
+    toc: yes
+    toc_float: yes
+    toc_depth: 3
+  pdf_document: default
+---
+
+```{r setup, include=FALSE, echo = FALSE}
+# Basic knitr options
+library(knitr)
+opts_chunk$set(comment = NA, 
+               echo = FALSE,
+               warning = FALSE, 
+               message = FALSE, 
+               error = TRUE, 
+               cache = FALSE)
+options(scipen = '999')
+```
+
+```{r}
+
+# Load packages and WHO VA instrument
+library(tidyverse)
+library(stringi)
+library(readxl)
+library(pander)
+library(gridExtra)
+library(descr)
+
+WHOVA2016 <- read_excel("docs/WHOVA2016-Instrument_Manual_and_Questionnaire/WHOVA2016_v1_5_3_XLS_form_for_ODK.xlsx")
+
+```
+
+# Relevant variables
+
+In the 2016 WHO and CHAMPS VA surveys, variables `Id10181` through `Id10187` are most directly relevant:
+
+```{r}
+stool_vars <- c('Id10181', 'Id10182', 'Id10183', 'Id10184', 'Id10185', 'Id10186', 'Id10187')
+idx <- which( WHOVA2016$name %in% stool_vars )
+knitr::kable( data.frame(Question = WHOVA2016$`label::English`[idx] ))
+
+```
+
+In the 2012 WHO VA survey, variables `3B280` through `3B300` are most relevant:
+
+* `3B280` : Did (s)he have diarrhoea?
+* `3B290` : For how long did (s)he have diarrhoea? (time in weeks)
+* `3B290_choice` : acute (< 2 weeks), persistent (2--4 weeks), recurrent ( >= 4 weeks)
+* `3B300` : At any time during the final illness was there blood in the stools?
+
+# Gambia child data
+
+```{r}
+
+# get the 2016 data:
+####################
+
+gambia_bn <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BN_HDSS/csv/VA_Child_WHO2016.csv")
+names(gambia_bn) <- gsub( "child", "Id", names( gambia_bn ) )
+
+gambia_bn <- gambia_bn %>% select(Id10181:Id10187)
+gambia_bn <- gambia_bn %>%
+  mutate( Id10181 = recode_factor(.x = Id10181,
+                                  "1" = "Yes",
+                                  "2" = "No" ,
+                                  "3" = "Don't know")) %>%
+  mutate( Id10185 = recode_factor(.x = Id10185, 
+                                  "1" = "Yes",
+                                  "2" = "No",
+                                  "3" = "Don't know")) %>%
+  mutate( Country = "Gambia", Site = "BN_HDSS", Category = "Child", Year = "2016")
+
+gambia_bs <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/VA_Child_WHO2016.csv")
+names(gambia_bs) <- gsub( "child", "Id", names( gambia_bs ) )
+
+gambia_bs <- gambia_bs %>% select(Id10181:Id10187)
+gambia_bs <- gambia_bs %>%
+  mutate( Id10181 = recode_factor(.x = Id10181,
+                                  "1" = "Yes",
+                                  "2" = "No" ,
+                                  "3" = "Don't know")) %>%
+  mutate( Id10185 = recode_factor(.x = Id10185, 
+                                  "1" = "Yes",
+                                  "2" = "No",
+                                  "3" = "Don't know")) %>%
+  mutate( Country = "Gambia", Site = "BS_HDSS", Category = "Child", Year = "2016")
+
+# combine the 2016 data:
+########################
+
+gambia_2016 <- rbind( gambia_bn, gambia_bs)
+
+# now get the 2012 data :
+#########################
+
+gambia_bn <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BN_HDSS/csv/VA_ChildForm_WHO2012.csv")
+gambia_bn <- gambia_bn %>% select(Q3B280:Q3B300)
+gambia_bn <- gambia_bn %>%
+  mutate( Q3B280 = recode_factor(.x = Q3B280,
+                                  "1" = "Yes",
+                                  "2" = "No" ,
+                                  "3" = "Don't know")) %>%
+  mutate( Country = "Gambia", Site = "BN_HDSS", Category = "Child", Year = "2012")
+
+gambia_bs <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/VA_Child_WHO2012-mid 2016.csv")
+gambia_bs <- gambia_bs %>% select(Q3B280:Q3B300)
+gambia_bs <- gambia_bs %>%
+  mutate( Q3B280 = recode_factor(.x = Q3B280,
+                                  "1" = "Yes",
+                                  "2" = "No" ,
+                                  "3" = "Don't know")) %>%
+  mutate( Country = "Gambia", Site = "BS_HDSS", Category = "Child", Year = "2012 to mid-2016")
+
+# combine the 2012 to mid-2016 data :
+#####################################
+
+gambia_2012_2016 <- rbind( gambia_bn, gambia_bs)
+
+```
+
+## Basic incidence
+
+### 2016 data: `Id10181`
+
+```{r}
+
+addmargins( table( gambia_2016$Id10181, gambia_2016$Site ) )
+
+prop.table( table( gambia_2016$Id10181, gambia_2016$Site ), 2)
+
+bn <- gambia_2016 %>% 
+  filter( Site == "BN_HDSS" ) %>% 
+  drop_na( Id10181 ) %>% 
+  ggplot( aes( x= Id10181, 
+               y = 100*( (..count..) / sum(..count..) ))) + 
+  geom_bar() + 
+  labs( title = "BN HDSS", y = "Percentage" ) + ylim(0,100)
+
+bs <- gambia_2016 %>% 
+  filter( Site == "BS_HDSS" ) %>% 
+  drop_na( Id10181 ) %>% 
+  ggplot( aes( x= Id10181, 
+               y = 100*( (..count..) / sum(..count..) ))) + 
+  geom_bar() + 
+  labs( title = "BS HDSS", y = "Percentage" ) + ylim(0,100)
+
+grid.arrange( bn, bs, ncol=2 )
+
+```
+
+### 2012 to mid-2016 data: `Q3B280`
+
+```{r}
+
+addmargins( table( gambia_2012_2016$Q3B280, gambia_2012_2016$Site ) )
+
+prop.table( table( gambia_2012_2016$Q3B280, gambia_2012_2016$Site ), 2 )
+
+bn <- gambia_2012_2016 %>% 
+  filter( Site == "BN_HDSS" ) %>% 
+  drop_na( Q3B280 ) %>% 
+  ggplot( aes( x= Q3B280, 
+               y = 100*( (..count..) / sum(..count..) ))) + 
+  geom_bar() + 
+  labs( title = "BN HDSS", y = "Percentage" ) + ylim(0,100)
+
+bs <- gambia_2012_2016 %>% 
+  filter( Site == "BS_HDSS" ) %>% 
+  drop_na( Q3B280 ) %>% 
+  ggplot( aes( x= Q3B280, 
+               y = 100*( (..count..) / sum(..count..) ))) + 
+  geom_bar() + 
+  labs( title = "BS HDSS", y = "Percentage" ) + ylim(0,100)
+
+grid.arrange( bn, bs, ncol=2 )
+
+```
+
+## Loose/liquid stool until death 
+
+### 2016 data: `Id10185`
+
+```{r}
+
+addmargins( table( gambia_2016$Id10185, gambia_2016$Site ) )
+
+prop.table( table( gambia_2016$Id10185, gambia_2016$Site ), 2 )
+
+bn <- gambia_2016 %>% 
+  filter( Site == "BN_HDSS" ) %>% 
+  drop_na( Id10185 ) %>% 
+  ggplot( aes( x= Id10185, y = 100*( (..count..) / sum(..count..) ) )) + 
+  geom_bar() + 
+  labs( title = "BN HDSS", y = "Percentage" ) + ylim(0,100)
+
+bs <- gambia_2016 %>% 
+  filter( Site == "BS_HDSS" ) %>% 
+  drop_na( Id10185 ) %>% 
+  ggplot( aes( x= Id10185, y = 100*( (..count..) / sum(..count..) ) )) + 
+  geom_bar() + 
+  labs( title = "BS HDSS", y = "Percentage" ) + ylim(0,100)
+
+grid.arrange( bn, bs, ncol=2 )
+
+```
+
+# Gambia neonatal data
+
+## 2016 data 
+
+```{r}
+
+# get the 2016 data:
+####################
+
+gambia_bn <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BN_HDSS/csv/VA_Neonates_WHO2016.csv")
+names(gambia_bn) <- gsub( "neonate", "Id", names( gambia_bn ) )
+
+gambia_bn <- gambia_bn %>% select(Id10181:Id10186)
+
+# gambia_bn <- gambia_bn %>%
+#   mutate( Id10181 = recode_factor(.x = Id10181,
+#                                   "1" = "Yes",
+#                                   "2" = "No" ,
+#                                   "3" = "Don't know")) %>%
+#   mutate( Country = "Gambia", Site = "BN_HDSS", Category = "Child", Year = "2016")
+
+gambia_bs <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/VA_Neonates_WHO2016.csv")
+names(gambia_bs) <- gsub( "neonate", "Id", names( gambia_bs ) )
+
+gambia_bs <- gambia_bs %>% select(Id10181:Id10186)
+
+gambia_bs <- gambia_bs %>%
+  mutate( Id10181 = recode_factor(.x = Id10181,
+                                  "1" = "Yes",
+                                  "2" = "No" ,
+                                  "3" = "Don't know")) %>%
+  mutate( Country = "Gambia", Site = "BS_HDSS", Category = "Child", Year = "2016")
+
+```
+
+There is no data for the most directly relevant variables from `BN_HDSS` site:
+
+```{r}
+knitr::kable( gambia_bn )
+```
+
+And not much from the `BS_HDSS` site:
+
+```{r}
+
+table( Id10181 = gambia_bs$Id10181, useNA="ifany")
+
+```
+
+## 2012 to mid-2016 data
+
+```{r}
+
+# get the 2012 to mid-2016 data:
+################################
+
+gambia_bn <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BN_HDSS/csv/VA_Neonates_WHO2012.csv")
+names(gambia_bn) <- gsub( "neonate", "Id", names( gambia_bn ) )
+
+gambia_bn <- gambia_bn %>% select(Q3B280:Q3B300)
+gambia_bn <- gambia_bn %>%
+  mutate( Q3B280 = recode_factor(.x = Q3B280,
+                                  "1" = "Yes",
+                                  "2" = "No" ,
+                                  "3" = "Don't know")) %>%
+  mutate( Country = "Gambia", Site = "BN_HDSS", Category = "Child", Year = "2012 to mid-2016")
+
+gambia_bs <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/VA_Neonates_WHO2012-mid-2016.csv")
+names(gambia_bs) <- gsub( "neonate", "Id", names( gambia_bs ) )
+
+gambia_bs <- gambia_bs %>% select(Q3B280:Q3B300)
+gambia_bs <- gambia_bs %>%
+  mutate( Q3B280 = recode_factor(.x = Q3B280,
+                                  "1" = "Yes",
+                                  "2" = "No" ,
+                                  "3" = "Don't know")) %>%
+  mutate( Country = "Gambia", Site = "BS_HDSS", Category = "Child", Year = "2012 to mid-2016")
+
+# combine the 2012 to mid-2016 data :
+#####################################
+
+gambia_2012_2016 <- rbind( gambia_bn, gambia_bs)
+
+```
+
+### 2012 to mid-2016 data: `Q3B280`
+
+```{r}
+
+addmargins( table( gambia_2012_2016$Q3B280, gambia_2012_2016$Site ) )
+
+prop.table( table( gambia_2012_2016$Q3B280, gambia_2012_2016$Site ), 2 )
+
+bn <- gambia_2012_2016 %>% 
+  filter( Site == "BN_HDSS" ) %>% 
+  drop_na( Q3B280 ) %>% 
+  ggplot( aes( x= Q3B280, 
+               y = 100*( (..count..) / sum(..count..) ))) + 
+  geom_bar() + 
+  labs( title = "BN HDSS", y = "Percentage" ) + ylim(0,100)
+
+bs <- gambia_2012_2016 %>% 
+  filter( Site == "BS_HDSS" ) %>% 
+  drop_na( Q3B280 ) %>% 
+  ggplot( aes( x= Q3B280, 
+               y = 100*( (..count..) / sum(..count..) ))) + 
+  geom_bar() + 
+  labs( title = "BS HDSS", y = "Percentage" ) + ylim(0,100)
+
+grid.arrange( bn, bs, ncol=2 )
+
+```
+
+# Mali CHAMPS 2017 data
+
+## Basic incidence: `Id10181`
+
+```{r}
+
+# get the 2017 data:
+####################
+
+mali_champs <- read_csv("va-data/Mali VA/WHO 2017/CHAMPS_Verbal_Autopsy_Form_results.csv")
+idx <- grep( "Id1018", names( mali_champs ))
+mali_champs <- mali_champs[,idx]
+names( mali_champs ) <- c("Id10181", "Id10182", "Id10183", "Id10184", "Id10185", "Id10186", "Id10187", "Id10188", "Id10189")
+
+mali_champs <- mali_champs %>% select(Id10181:Id10187)
+
+mali_champs_v2_04 <- read_csv("va-data/Mali VA/WHO 2017/CHAMPS_Verbal_Autopsy_Form_v2_04_results.csv")
+idx <- grep( "Id1018", names( mali_champs_v2_04 ))
+mali_champs_v2_04 <- mali_champs_v2_04[,idx]
+names( mali_champs_v2_04 ) <- c("Id10181", "Id10182", "Id10183", "Id10184", "Id10185", "Id10186", "Id10187", "Id10188", "Id10189")
+
+mali_champs_v2_04 <- mali_champs_v2_04 %>% select(Id10181:Id10187)
+
+mali_champs_v2_04_1 <- read_csv("va-data/Mali VA/WHO 2017/CHAMPS_Verbal_Autopsy_Form_v2_04_1_results.csv")
+idx <- grep( "Id1018", names( mali_champs_v2_04_1 ))
+mali_champs_v2_04_1 <- mali_champs_v2_04_1[,idx]
+names( mali_champs_v2_04_1 ) <- c("Id10181", "Id10182", "Id10183", "Id10184", "Id10185", "Id10186", "Id10187", "Id10188", "Id10189")
+
+mali_champs_v2_04_1 <- mali_champs_v2_04_1 %>% select(Id10181:Id10187)
+
+```
+
+### `CHAMPS_Verbal_Autopsy_Form_results.csv`
+
+```{r}
+
+addmargins( table( mali_champs$Id10181 ) )
+
+prop.table( table( mali_champs$Id10181 ) )
+
+mali_champs %>% 
+  drop_na( Id10181 ) %>% 
+  ggplot( aes( x= Id10181, 
+               y = 100*( (..count..) / sum(..count..) ))) + 
+  geom_bar() + 
+  labs( title = "Mali CHAMPS 2017", y = "Percentage" ) + ylim(0,100)
+
+```
+
+### `CHAMPS_Verbal_Autopsy_Form_v2_04_results.csv`
+
+```{r}
+
+addmargins( table( mali_champs_v2_04$Id10181 ) )
+
+prop.table( table( mali_champs_v2_04$Id10181 ) )
+
+mali_champs_v2_04 %>% 
+  drop_na( Id10181 ) %>% 
+  ggplot( aes( x= Id10181, 
+               y = 100*( (..count..) / sum(..count..) ))) + 
+  geom_bar() + 
+  labs( title = "Mali CHAMPS 2017 v2_04", y = "Percentage" ) + ylim(0,100)
+
+```
+
+### `CHAMPS_Verbal_Autopsy_Form_v2_04_1_results.csv`
+
+```{r}
+
+addmargins( table( mali_champs_v2_04_1$Id10181 ) )
+
+prop.table( table( mali_champs_v2_04_1$Id10181 ) )
+
+mali_champs_v2_04_1 %>% 
+  drop_na( Id10181 ) %>% 
+  ggplot( aes( x= Id10181, 
+               y = 100*( (..count..) / sum(..count..) ))) + 
+  geom_bar() + 
+  labs( title = "Mali CHAMPS 2017 v2_04_1", y = "Percentage" ) + ylim(0,100)
+
+```

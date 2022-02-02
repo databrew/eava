@@ -1,0 +1,225 @@
+---
+title: "VIDA VA analysis"
+author: "Databrew"
+date: "`r Sys.time()`"
+output:
+  pdf_document: default
+  html_document:
+    theme: yeti
+---
+
+```{r setup, include=FALSE, echo = FALSE}
+# Basic knitr options
+library(knitr)
+opts_chunk$set(comment = NA, 
+               echo = FALSE,
+               warning = FALSE, 
+               message = FALSE, 
+               error = TRUE, 
+               cache = FALSE)
+options(scipen = '999')
+```
+
+```{r}
+
+# Load packages and WHO VA instrument
+library(tidyverse)
+library(stringi)
+library(readxl)
+library(pander)
+library(CrossVA)
+library(InterVA5)
+
+WHOVA2016 <- read_excel("WHOVA2016-Instrument_Manual_and_Questionnaire/WHOVA2016_v1_5_3_XLS_form_for_ODK.xlsx")
+
+```
+
+# Gambia child data: Preliminary inspection
+
+```{r}
+# load the data
+# gambia_child <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BN_HDSS/csv/VA_Child_WHO2016.csv")
+gambia_child <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/VA_Child_WHO2016.csv")
+gambia_child_names <- names( gambia_child )
+gambia_child_names <- gsub( "child", "Id", gambia_child_names )
+names(gambia_child) <- gambia_child_names
+# write_csv(gambia_child, "va-data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/gambia_child_WHO2016.csv")
+
+idx <- which( WHOVA2016$name %in% names(gambia_child) )
+questions <- WHOVA2016$`label::English`[idx]
+```
+
+After converting column names to the WHO VA 2016 standard, 
+`r length(idx)` of the `r length(names(gambia_child))` variables in the Gambia 
+dataset `VA Data-Gambia Site_31Oct2017/BS HDSS/csv/VA_Child_WHO2016.csv` are immediately recognizable:
+
+```{r}
+for( i in 1:length(questions)){
+  cat(paste(questions[i],"\n"))
+}
+```
+
+And here are the names of the columns that are not immediately recognized:
+
+```{r}
+idx <- which( names(gambia_child) %in% WHOVA2016$name )
+names(gambia_child)[-idx]
+```
+
+By cross referencing the WHO VA 2016 manual and the CHAMPS VA Child document (in the Mali directory!):
+ 
+- `aaaa` is not a WHO ID; in the CHAMPS VA survey, it's the age of the child in days, months, or years, as indicated by `aaaa_my`
+- `Id10056` is not a standard WHO ID, but it is a CHAMPS ID!
+- `dwm_10120` probably indicates the units (days, weeks, or months?) for questions about the duration of illness before death
+- in the WHO manual, `Id10184` relates to several questions about when frequent loose or liquid stools started before death; in the CHAMPS manual, this is _one_ question.
+- columns starting with `Id10431` concern EPI vaccination
+
+```{r}
+gambia_child <- gambia_child[idx]
+```
+
+Without further information, these columns aren't very useful; we'll drop them before proceeding to applying InterVA5. 
+
+# Gambia neonatal data: Preliminary inspection
+
+```{r}
+# load the data
+# gambia_neonate <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/VA_Neonates_WHO2016.csv")
+gambia_neonate <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/VA_Neonates_WHO2016.csv")
+gambia_neonate_names <- names( gambia_neonate )
+gambia_neonate_names <- gsub( "neonate", "Id", gambia_neonate_names )
+names(gambia_neonate) <- gambia_neonate_names
+
+idx <- which( WHOVA2016$name %in% names(gambia_neonate) )
+questions <- WHOVA2016$`label::English`[idx]
+```
+
+After converting column names to the WHO VA 2016 standard, 
+`r length(idx)` of the `r length(names(gambia_neonate))` variables in the Gambia 
+neonatal dataset `VA Data-Gambia Site_31Oct2017/BS HDSS/csv/VA_Neonates_WHO2016.csv` are immediately recognizable:
+
+```{r}
+for( i in 1:length(questions)){
+  cat(paste(questions[i],"\n"))
+}
+```
+
+And here are the names of the columns that are not immediately recognized:
+
+```{r}
+idx <- which( names(gambia_neonate) %in% WHOVA2016$name )
+names(gambia_neonate)[-idx]
+```
+
+By referencing the WHO VA 2016 manual, 
+ 
+- `dwm_10120` probably indicates the units (days, weeks, or months?) for questions about the duration of illness before death,
+- `Id10184` relates to questions about when frequent loose or liquid stools started before death, and
+- columns starting with `Id10431` concern EPI vaccination.
+
+```{r}
+gambia_neonate <- gambia_neonate[idx]
+```
+
+Without further information, these columns aren't very useful; we'll drop them before proceeding to applying InterVA5. 
+
+# InterVA formatting
+
+The `CrossVA` package is supposed to transform WHO VA data into the format expected by the InterVA algorithm. 
+So far, their conversion functions seem brittle and poorly documented.
+
+## Gambia child data
+
+```{r}
+
+whoNames <- c("Id10004", "Id10004", "Id10019", "Id10019", "Id10022", "Id10022", "Id10022",
+              "Id10022", "Id10022", "Id10022", "Id10022", "Id10022", "Id10022", "Id10022",
+              "Id10022", "Id10022", "Id10022", "Id10022", "Id10059", "Id10077", "Id10079",
+              "Id10082", "Id10083", "Id10084", "Id10085", "Id10086", "Id10087", "Id10089",
+              "Id10090", "Id10091", "Id10092", "Id10093", "Id10094", "Id10095", "Id10096",
+              "Id10098", "Id10099", "Id10100", "Id10104", "Id10105", "Id10106", "Id10107",
+              "Id10108", "Id10109", "Id10110", "Id10111", "Id10112", "Id10113", "Id10114",
+              "Id10115", "Id10116", "Id10120", "Id10120", "Id10123", "Id10125", "Id10127",
+              "Id10128", "Id10129", "Id10130", "Id10131", "Id10132", "Id10133", "Id10134",
+              "Id10135", "Id10136", "Id10137", "Id10138", "Id10139", "Id10140", "Id10141",
+              "Id10142", "Id10143", "Id10144", "Id10147", "Id10148", "Id10148", "Id10148",
+              "Id10149", "Id10150", "Id10151", "Id10152", "Id10153", "Id10154", "Id10154",
+              "Id10155", "Id10156", "Id10157", "Id10158", "Id10159", "Id10161", "Id10165",
+              "Id10166", "Id10167", "Id10167", "Id10168", "Id10169", "Id10169", "Id10170",
+              "Id10171", "Id10172", "Id10173", "Id10174", "Id10175", "Id10176", "Id10178",
+              "Id10181", "Id10182", "Id10182", "Id10182", "Id10183", "Id10184", "Id10185",
+              "Id10186", "Id10187", "Id10188", "Id10189", "Id10190", "Id10191", "Id10192",
+              "Id10193", "Id10194", "Id10195", "Id10197", "Id10197", "Id10199", "Id10199",
+              "Id10200", "Id10201", "Id10201", "Id10203", "Id10204", "Id10205", "Id10205",
+              "Id10207", "Id10208", "Id10209", "Id10209", "Id10210", "Id10211", "Id10212",
+              "Id10213", "Id10214", "Id10215", "Id10216", "Id10217", "Id10218", "Id10219",
+              "Id10220", "Id10221", "Id10221", "Id10222", "Id10223", "Id10224", "Id10225",
+              "Id10226", "Id10227", "Id10228", "Id10229", "Id10230", "Id10231", "Id10232",
+              "Id10233", "Id10234", "Id10234", "Id10235", "Id10235", "Id10235", "Id10235",
+              "Id10236", "Id10237", "Id10238", "Id10239", "Id10240", "Id10241", "Id10242",
+              "Id10243", "Id10244", "Id10245", "Id10246", "Id10247", "Id10248", "Id10249",
+              "Id10250", "Id10251", "Id10252", "Id10253", "Id10254", "Id10255", "Id10256",
+              "Id10257", "Id10258", "Id10259", "Id10260", "Id10260", "Id10260", "Id10260",
+              "Id10260", "Id10260", "Id10260", "Id10261", "Id10262", "Id10263", "Id10263",
+              "Id10264", "Id10265", "Id10266", "Id10267", "Id10268", "Id10269", "Id10270",
+              "Id10271", "Id10272", "Id10273", "Id10274", "Id10275", "Id10276", "Id10277",
+              "Id10278", "Id10279", "Id10281", "Id10282", "Id10283", "Id10284", "Id10285",
+              "Id10286", "Id10287", "Id10288", "Id10289", "Id10290", "Id10294", "Id10295",
+              "Id10296", "Id10297", "Id10298", "Id10299", "Id10300", "Id10301", "Id10302",
+              "Id10303", "Id10304", "Id10305", "Id10306", "Id10309", "Id10310", "Id10312",
+              "Id10313", "Id10314", "Id10315", "Id10316", "Id10317", "Id10318", "Id10319",
+              "Id10319", "Id10320", "Id10321", "Id10322", "Id10323", "Id10324", "Id10325",
+              "Id10326", "Id10327", "Id10328", "Id10329", "Id10330", "Id10331", "Id10332",
+              "Id10333", "Id10334", "Id10335", "Id10336", "Id10337", "Id10337", "Id10337",
+              "Id10338", "Id10340", "Id10342", "Id10343", "Id10344", "Id10347", "Id10354",
+              "Id10355", "Id10356", "Id10357", "Id10358", "Id10360", "Id10360", "Id10360",
+              "Id10361", "Id10362", "Id10363", "Id10364", "Id10365", "Id10367", "Id10367",
+              "Id10367", "Id10368", "Id10369", "Id10370", "Id10371", "Id10372", "Id10373",
+              "Id10376", "Id10377", "Id10382", "Id10383", "Id10384", "Id10385", "Id10387",
+              "Id10388", "Id10389", "Id10391", "Id10393", "Id10394", "Id10394", "Id10395",
+              "Id10396", "Id10397", "Id10398", "Id10399", "Id10400", "Id10401", "Id10402",
+              "Id10403", "Id10404", "Id10405", "Id10406", "Id10408", "Id10411", "Id10412",
+              "Id10413", "Id10414", "Id10415", "Id10418", "Id10419", "Id10420", "Id10421",
+              "Id10422", "Id10423", "Id10424", "Id10425", "Id10426", "Id10427", "Id10428",
+              "Id10450", "Id10451", "Id10452", "Id10453", "Id10454", "Id10455", "Id10456",
+              "Id10457", "Id10458", "Id10459")
+
+present <- which( names(gambia_child) %in% unique(whoNames) )
+# length(present)
+# names(gambia)[idx]
+# gambia <- gambia[idx]
+# n_rows <- nrow(gambia)
+
+missing <- which( ! unique(whoNames) %in% names(gambia_child) )
+missing_cols <- unique(whoNames)[missing]
+
+# missing_vars <- matrix(nrow=n_rows, ncol=length( missing_cols ))
+# colnames(missing_vars) = missing_cols
+# gambia <- cbind( gambia, missing_vars)
+
+```
+
+Here's how the `r ncol(gambia_child)` remaining variables in the Gambia child dataset compare with 
+the `r length(unique(whoNames))` variables that the `CrossVA` function `odk2openVA_v141` expects in its input:
+
+- the Gambia child data has `r length(present)` of the expected variables, and 
+- `r length(missing)` expected variables are missing.
+
+## Gambia neonatal data
+
+```{r}
+
+present_neo <- which( names(gambia_neonate) %in% unique(whoNames) )
+
+missing_neo <- which( ! unique(whoNames) %in% names(gambia_neonate) )
+missing_cols_neo <- unique(whoNames)[missing_neo]
+
+```
+
+Here's how the `r ncol(gambia_neonate)` remaining variables in the Gambia neonatal dataset compare with 
+the `r length(unique(whoNames))` variables that the `CrossVA` function `odk2openVA_v141` expects in its input:
+
+- the Gambia neonatal data has `r length(present_neo)` of the expected variables, and 
+- `r length(missing_neo)` expected variables are missing.
+
+> **Next step: figure out how to wrangle the Gambia data into the format that InterVA5 requires!**
