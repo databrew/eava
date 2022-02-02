@@ -5,5 +5,5 @@
 *.tex
 *.xlsx
 
-/data
+data/*
 
