@@ -2,7 +2,10 @@
 *.html
 *.tex
 *.pdf
+*.docx
 *.png
 *.xlsx
 
 data/
+jhu/
+

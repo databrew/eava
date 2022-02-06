@@ -3,9 +3,9 @@ title: "VIDA VA analysis"
 author: "Databrew"
 date: "`r Sys.time()`"
 output:
-  pdf_document: default
   html_document:
     theme: yeti
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE, echo = FALSE}
@@ -30,7 +30,7 @@ library(pander)
 library(CrossVA)
 library(InterVA5)
 
-WHOVA2016 <- read_excel("WHOVA2016-Instrument_Manual_and_Questionnaire/WHOVA2016_v1_5_3_XLS_form_for_ODK.xlsx")
+WHOVA2016 <- read_excel("docs/va_instruments/WHOVA2016-Instrument_Manual_and_Questionnaire/WHOVA2016_v1_5_3_XLS_form_for_ODK.xlsx")
 
 ```
 
@@ -38,12 +38,12 @@ WHOVA2016 <- read_excel("WHOVA2016-Instrument_Manual_and_Questionnaire/WHOVA2016
 
 ```{r}
 # load the data
-# gambia_child <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BN_HDSS/csv/VA_Child_WHO2016.csv")
-gambia_child <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/VA_Child_WHO2016.csv")
+# gambia_child <- read_csv("data/VA_Data_Gambia_Site_31Oct2017/BN_HDSS/csv/VA_Child_WHO2016.csv")
+gambia_child <- read_csv("data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/VA_Child_WHO2016.csv")
 gambia_child_names <- names( gambia_child )
 gambia_child_names <- gsub( "child", "Id", gambia_child_names )
 names(gambia_child) <- gambia_child_names
-# write_csv(gambia_child, "va-data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/gambia_child_WHO2016.csv")
+# write_csv(gambia_child, "data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/gambia_child_WHO2016.csv")
 
 idx <- which( WHOVA2016$name %in% names(gambia_child) )
 questions <- WHOVA2016$`label::English`[idx]
@@ -84,8 +84,8 @@ Without further information, these columns aren't very useful; we'll drop them b
 
 ```{r}
 # load the data
-# gambia_neonate <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/VA_Neonates_WHO2016.csv")
-gambia_neonate <- read_csv("va-data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/VA_Neonates_WHO2016.csv")
+# gambia_neonate <- read_csv("data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/VA_Neonates_WHO2016.csv")
+gambia_neonate <- read_csv("data/VA_Data_Gambia_Site_31Oct2017/BS_HDSS/csv/VA_Neonates_WHO2016.csv")
 gambia_neonate_names <- names( gambia_neonate )
 gambia_neonate_names <- gsub( "neonate", "Id", gambia_neonate_names )
 names(gambia_neonate) <- gambia_neonate_names
