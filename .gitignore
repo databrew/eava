@@ -5,6 +5,7 @@
 *.docx
 *.png
 *.xlsx
+*.Rhistory
 
 data/
 jhu/
