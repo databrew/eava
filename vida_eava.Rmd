@@ -1,11 +1,36 @@
-# implements the hierarchical expert algorithm for verbal autopsy described in 
-# [Kalter et al. 2015](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4416334/) (doi: 10.7189/jogh.05.010415)
+---
+title: "VIDA causes of death via EAVA"
+author: "Databrew LLC"
+date: "2/8/2022"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 3
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
 
+```{r setup, include=FALSE, echo = FALSE}
+# Basic knitr options
+library(knitr)
+opts_chunk$set(comment = NA, 
+               echo = FALSE,
+               warning = FALSE, 
+               message = FALSE, 
+               error = TRUE, 
+               cache = FALSE)
+# options(scipen = '999')
+
+```
+
+```{r} 
 library(vida)
 library(dplyr)
 library(tidyr)
+library(readr)
 library(lubridate)
-data('master')
+library(flextable)
 
 #' Determine causes of death for ALL decedents in a verbal autopsy (VA) dataset that has been
 #' translated into `babel` format with the `vida` package
@@ -37,7 +62,7 @@ cod <- function(responses) {
                  "animal", "venomous_animal", "burn", "assault", "other_injury" )
                  # "sign_injury_broken_bones")
   questions <- questions[ which( questions %in% names(responses)) ]
-  answers <- responses %>% select( questions )
+  answers <- responses %>% select( all_of(questions) )
   
   # concern: this is going to barf somewhere on files that don't use "yes", "no" !!
   if(any(!is.na(answers))) {
@@ -56,14 +81,14 @@ cod <- function(responses) {
   
   questions <- c("swell_armpits", "rash_mouth")
   questions <- questions[ which( questions %in% names(responses)) ]
-  answers <- responses %>% select( questions )
+  answers <- responses %>% select( all_of(questions) )
   
   if(any(!is.na(answers))) {
     if( any( answers == "yes", na.rm=TRUE ) ){
       questions <- c("thin", "protruding_abdomen", "diarrhea", "fever", 
                      "rash", "fast_breathing", "chest_pull_in")
       questions <- questions[ which( questions %in% names(responses)) ]
-      answers <- responses %>% select( questions )
+      answers <- responses %>% select( all_of(questions) )
       if( length( which( answers == "yes")) >= 3 ){
         return("AIDS")
       }
@@ -74,7 +99,7 @@ cod <- function(responses) {
   
   questions <- c("thin", "swell_feet", "swell_leg")
   questions <- questions[ which( questions %in% names(responses)) ]
-  answers <- responses %>% select( questions )
+  answers <- responses %>% select( all_of(questions) )
   if(any(!is.na(answers))) {
     if( any( answers == "yes", na.rm=TRUE )){
       return( "malnutrition (underlying)")
@@ -98,7 +123,7 @@ cod <- function(responses) {
   if( !is.na( age ) & age > 120 ){
     questions <- c("rash", "rash_face", "measles_rash", "fever")
     questions <- questions[ which( questions %in% names(responses)) ]
-    answers <- responses %>% select( questions )
+    answers <- responses %>% select( all_of(questions) )
     if(any(!is.na(answers))) {
       if( all( answers == "yes", na.rm=TRUE )){
         return( "measles")
@@ -110,12 +135,12 @@ cod <- function(responses) {
   
   questions <- c("fever")
   questions <- questions[ which( questions %in% names(responses)) ]
-  answers <- responses %>% select( questions )
+  answers <- responses %>% select( all_of(questions) )
   if(any(!is.na(answers))) {
     if( any( answers == "yes", na.rm=TRUE )){
       questions <- c("stiff_neck", "bulging_fontanelle")
       questions <- questions[ which( questions %in% names(responses)) ]
-      answers <- responses %>% select( questions )
+      answers <- responses %>% select( all_of(questions) )
       if( any( answers == "yes", na.rm=TRUE )){
         return("meningitis")
       }
@@ -125,12 +150,12 @@ cod <- function(responses) {
   # dysentery -----
   
   questions <- c("diarrhea")
-  answers <- responses %>% select(questions)
+  answers <- responses %>% select(all_of(questions))
   if (any(!is.na(answers))) {
     if (all(answers == "yes", na.rm = TRUE)) {
       questions <- c("bloody_stool_until_death", "bloody_stool", "diarrhea_bloody")
       questions <- questions[ which( questions %in% names(responses)) ]
-      answers <- responses %>% select(questions)
+      answers <- responses %>% select(all_of(questions))
       if (any(!is.na(answers))) {
         if (any(answers == "yes", na.rm = TRUE)) {
           return("dysentery") 
@@ -144,7 +169,7 @@ cod <- function(responses) {
       #                "times_diarrhea",
       #                "number_stools_per_day")
       # questions <- questions[which(questions %in% names(responses))]
-      # answers <- responses %>% select(questions)
+      # answers <- responses %>% select(all_of(questions))
       # if (any(!is.na(answers))) {
       #   if (all(answers > 4, na.rm = TRUE)) {
       #    return("dysentery")
@@ -161,12 +186,12 @@ cod <- function(responses) {
   # as for dysentery, need to check frequency / duration
   
   questions <- c("diarrhea")
-  answers <- responses %>% select(questions)
+  answers <- responses %>% select(all_of(questions))
   if (any(!is.na(answers))) {
     if (all(answers == "yes", na.rm = TRUE)) {
       questions <- c("bloody_stool_until_death", "bloody_stool", "diarrhea_bloody")
       questions <- questions[which(questions %in% names(responses))]
-      answers <- responses %>% select(questions)
+      answers <- responses %>% select(all_of(questions))
       if (any(!is.na(answers))) {
         if (all(answers == "no", na.rm = TRUE)) {
           return("diarrhea")
@@ -183,11 +208,11 @@ cod <- function(responses) {
   # VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel uses days_cough
   
   # questions <- c("days_cough")
-  # answers <- responses %>% select(questions)
+  # answers <- responses %>% select(all_of(questions))
   # if( answers > 14 ){
   #   questions <- c("cough_severe", "cough_vomit")
   #   questions <- questions[ which( questions %in% names(responses)) ]
-  #   answers <- responses %>% select(questions)
+  #   answers <- responses %>% select(all_of(questions))
   #   if (any(!is.na(answers))) {
   #     if (all(answers == "no", na.rm = TRUE)) {
   #       return("diarrhea")
@@ -224,32 +249,103 @@ cod <- function(responses) {
   return("unspecified")
 }
 
-# utility functions for testing/development
+```
 
-check_all <- function( answers ){
-  for( i in 1:nrow(answers) ){
-    if(any(!is.na(answers))) {
-      if( all( answers[i,] == "yes", na.rm=TRUE)){
-        cat("Nailed it!\n")
-      } else{
-        cat("Nothin'\n")
-      }
-    } else{
-      cat("All NAs\n")
-    }
-  }
-}
+# The Gambia
 
-check_any <- function( answers ){
-  for( i in 1:nrow(answers)){
-    if(any(!is.na(answers))) {
-      if( any( answers[i,] == "yes", na.rm=TRUE)){
-        cat("Nailed it!\n")
-      } else{
-        cat("Nothin'\n")
-      }
-    } else{
-      cat("All NAs\n")
-    }
-  }
-}
+## BN_HDSS
+
+### VA_ChildForm_WHO2012
+
+```{r}
+df <- read_csv("data/gambia_babel/bn_hdss/VA_ChildForm_WHO2012_babel.csv", show_col_types = FALSE)
+as.data.frame( table( get_causes( df )) ) %>%
+  pivot_wider( names_from = Var1, values_from = Freq) %>%
+  regulartable() %>% autofit()
+```
+
+### VA_Child_WHO2016
+
+```{r}
+df <- read_csv("data/gambia_babel/bn_hdss/VA_Child_WHO2016_babel.csv", show_col_types = FALSE)
+as.data.frame( table( get_causes( df )) ) %>%
+  pivot_wider( names_from = Var1, values_from = Freq) %>%
+  regulartable() %>% autofit()
+```
+
+## BS_HDSS
+
+<!-- ### VA_Child_Indepth_2008-2012 -->
+
+```{r eval=FALSE}
+df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_Indepth_2008-2012_babel.csv", show_col_types = FALSE)
+as.data.frame( table( get_causes( df )) ) %>%
+  pivot_wider( names_from = Var1, values_from = Freq) %>%
+  regulartable() %>% autofit()
+```
+
+### VA_Child_WHO2012-mid 2016
+
+```{r}
+df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2012-mid 2016_babel.csv", show_col_types = FALSE)
+as.data.frame( table( get_causes( df )) ) %>%
+  pivot_wider( names_from = Var1, values_from = Freq) %>%
+  regulartable() %>% autofit()
+```
+
+### VA_Child_WHO2016
+
+```{r}
+df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2016_babel.csv", show_col_types = FALSE)
+as.data.frame( table( get_causes( df )) ) %>%
+  pivot_wider( names_from = Var1, values_from = Freq) %>%
+  regulartable() %>% autofit()
+```
+
+<!-- ### VA_Child_WHO2016_corrdate -->
+
+```{r eval=FALSE}
+df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2016_corrdate_babel.csv", show_col_types = FALSE)
+as.data.frame( table( get_causes( df )) ) %>%
+  pivot_wider( names_from = Var1, values_from = Freq) %>%
+  regulartable() %>% autofit()
+```
+
+# Mali
+
+## CHAMPS_Verbal_Autopsy_Form_results
+
+```{r}
+df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_results_babel.csv", show_col_types = FALSE)
+as.data.frame( table( get_causes( df )) ) %>%
+  pivot_wider( names_from = Var1, values_from = Freq) %>%
+  regulartable() %>% autofit()
+```
+
+## CHAMPS_Verbal_Autopsy_Form_v2_04_1_results
+
+```{r}
+df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_1_results_babel.csv", show_col_types = FALSE)
+as.data.frame( table( get_causes( df )) ) %>%
+  pivot_wider( names_from = Var1, values_from = Freq) %>%
+  regulartable() %>% autofit()
+```
+
+## CHAMPS_Verbal_Autopsy_Form_v2_04_results
+
+```{r}
+df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_results_babel.csv", show_col_types = FALSE)
+as.data.frame( table( get_causes( df )) ) %>%
+  pivot_wider( names_from = Var1, values_from = Freq) %>%
+  regulartable() %>% autofit()
+```
+
+## VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR201
+
+```{r}
+df <- read_csv("data/mali_babel/VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel.csv", show_col_types = FALSE)
+as.data.frame( table( get_causes( df )) ) %>%
+  pivot_wider( names_from = Var1, values_from = Freq) %>%
+  regulartable() %>% autofit()
+```
+
