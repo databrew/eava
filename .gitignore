@@ -5,6 +5,7 @@
 *.docx
 *.png
 *.xlsx
+*.zip
 *.Rhistory
 
 data/
