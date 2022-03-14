@@ -38,9 +38,9 @@ cod <- function(responses) {
   # the following computes duration of fever in DAYS
   if( !is.na( responses$fever ) & responses$fever == "yes" ){
     if( !is.na(responses$fever_duration) & (responses$fever_duration == "weeks") ){
-      fever_duration <- 7*responses$days_weeks_fever
+      fever_duration <- 7*as.numeric(responses$days_weeks_fever)
     } else if( !is.na(responses$fever_duration) & (responses$fever_duration == "days") ){
-      fever_duration <- responses$days_weeks_fever
+      fever_duration <- as.numeric(responses$days_weeks_fever)
     } else{
       fever_duration <- NA
     }
@@ -55,9 +55,9 @@ cod <- function(responses) {
   # the following computes duration of rash in DAYS
   if( !is.na( responses$rash ) & responses$rash == "yes" ){
     if( !is.na(responses$rash_duration) & responses$rash_duration == "weeks"){
-      rash_duration <- 7*responses$days_weeks_rash
+      rash_duration <- 7*as.numeric(responses$days_weeks_rash)
     } else if( !is.na(responses$rash_duration) & responses$rash_duration == "days" ){
-      rash_duration <- responses$days_weeks_rash
+      rash_duration <- as.numeric(responses$days_weeks_rash)
     } else{
       rash_duration <- NA
     }
@@ -72,9 +72,9 @@ cod <- function(responses) {
   # the following computes duration of cough in DAYS
   if( !is.na( responses$cough ) & responses$cough == "yes" ){
     if( !is.na(responses$cough_duration) & responses$cough_duration == "weeks"){
-      cough_duration <- 7*responses$days_weeks_cough
+      cough_duration <- 7*as.numeric(responses$days_weeks_cough)
     } else if( !is.na(responses$cough_duration) & responses$cough_duration == "days" ){
-      cough_duration <- responses$days_weeks_cough
+      cough_duration <- as.numeric(responses$days_weeks_cough)
     } else{
       cough_duration <- NA
     }
@@ -89,9 +89,9 @@ cod <- function(responses) {
   # the following computes duration of diarrhea in DAYS
   if( !is.na( responses$diarrhea ) & responses$diarrhea == "yes" ){
     if( !is.na(responses$diarrhea_duration) & responses$diarrhea_duration == "weeks"){
-      diarrhea_duration <- 7*responses$days_weeks_diarrhea
+      diarrhea_duration <- 7*as.numeric(responses$days_weeks_diarrhea)
     } else if( !is.na(responses$diarrhea_duration) & responses$diarrhea_duration == "days" ){
-      diarrhea_duration <- responses$days_weeks_diarrhea
+      diarrhea_duration <- as.numeric(responses$days_weeks_diarrhea)
     } else{
       diarrhea_duration <- NA
     }
@@ -106,9 +106,9 @@ cod <- function(responses) {
   # the following computes duration of fast breathing in DAYS
   if( !is.na( responses$fast_breathing ) & responses$fast_breathing == "yes" ){
     if( !is.na(responses$fast_breathing_duration) & responses$fast_breathing_duration == "weeks"){
-      fast_breathing_duration <- 7*responses$days_weeks_fast_breathing
+      fast_breathing_duration <- 7*as.numeric(responses$days_weeks_fast_breathing)
     } else if( !is.na(responses$fast_breathing_duration) & responses$fast_breathing_duration == "days" ){
-      fast_breathing_duration <- responses$days_weeks_fast_breathing
+      fast_breathing_duration <- as.numeric(responses$days_weeks_fast_breathing)
     } else{
       fast_breathing_duration <- NA
     }

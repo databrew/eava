@@ -5,20 +5,28 @@ library(vida)
 library(dplyr)
 library(tidyr)
 library(lubridate)
-data('master')
+# data('master')
+
+supported_formats <- c("c12_16")
 
 #' Determine causes of death for ALL decedents in a verbal autopsy (VA) dataset that has been
 #' translated into `babel` format with the `vida` package
 #' 
 #' @param babel_data : a data.frame of VA responses for multiple decedents (typically from one study site)
+#' @param format : mapper used in babel translation
 #' @return causes : causes of death determined by the hierarchical expert algorithm 
 #' 
-get_causes <- function( babel_data ){
-  causes <- vector(mode="character")
-  for( i in 1:nrow(babel_data)){
-    causes[i] <- cod( babel_data[i,])
+get_causes <- function(babel_data, format) {
+  if( format %in% supported_formats ){
+    causes <- vector(mode = "character")
+    for (i in 1:nrow(babel_data)) {
+      causes[i] <- cod(babel_data[i,], format)
+    }
+    return(causes)
+  } else{
+    message(paste0(format, " is not a supported babel mapper format.\nPlease check your VA data and try again."))
+    return(NULL)
   }
-  return(causes)
 }
 
 #' Determine ONE decedent's cause of death from verbal autopsy (VA) data that has been
@@ -27,229 +35,284 @@ get_causes <- function( babel_data ){
 #' @param responses : a data.frame of VA responses for one person (one row from a larger VA dataset)
 #' @return cod : the cause of death determined by the hierarchical expert algorithm 
 #' 
-cod <- function(responses) {
+cod <- function(responses, format) {
   
-  # injury -----
-  # same as JHU sas implementation
+  # for later use, determine durations of conditions in _DAYS_
+  days_fever <- fever_duration(responses, format) 
+  days_rash <- rash_duration(responses, format) 
+  days_cough <- cough_duration(responses, format) 
+  days_diarrhea <- diarrhea_duration(responses, format) 
+  days_fast_breathing <- fast_breathing_duration(responses, format) 
   
-  questions <- c("die_at_site_of_injury_accident", "injury_accident", "road_accident",
-                 "injury_fall", "drown", "accidentally_poisoned", "poisoning",
-                 "animal", "venomous_animal", "burn", "assault", "other_injury" )
-                 # "sign_injury_broken_bones")
-  questions <- questions[ which( questions %in% names(responses)) ]
-  answers <- responses %>% select( questions )
-  
-  # concern: this is going to barf somewhere on files that don't use "yes", "no" !!
-  if(any(!is.na(answers))) {
-    if (any(answers == "yes", na.rm = TRUE)) {
-      return("injury")
-    }
+  if (injury(responses, format)) {
+    return("Injury")
   }
   
-  # AIDS -----
-  # duration of diarrhea, fever, skin rash all need to be checked!! but...
-  # we lack duration variables, e.g., fever for > 30 days, diarrhea for > 30 days
-  
-  # rash_duration gives _units_ (e.g., weeks) in VA_ChildForm_WHO2012_babel ,
-  # does not exist in VA_Child_WHO2016_babel or in
-  # VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel
-  
-  questions <- c("swell_armpits", "rash_mouth")
-  questions <- questions[ which( questions %in% names(responses)) ]
-  answers <- responses %>% select( questions )
-  
-  if(any(!is.na(answers))) {
-    if( any( answers == "yes", na.rm=TRUE ) ){
-      questions <- c("thin", "protruding_abdomen", "diarrhea", "fever", 
-                     "rash", "fast_breathing", "chest_pull_in")
-      questions <- questions[ which( questions %in% names(responses)) ]
-      answers <- responses %>% select( questions )
-      if( length( which( answers == "yes")) >= 3 ){
-        return("AIDS")
-      }
-    }
+  if (aids(responses, format)) {
+    return("AIDS")
   }
   
-  # malnutrition (underlying) -----
-  
-  questions <- c("thin", "swell_feet", "swell_leg")
-  questions <- questions[ which( questions %in% names(responses)) ]
-  answers <- responses %>% select( questions )
-  if(any(!is.na(answers))) {
-    if( any( answers == "yes", na.rm=TRUE )){
-      return( "malnutrition (underlying)")
-    }
+  if (underlying_malnutrition(responses, format)) {
+    return("Malnutrition (underlying)")
   }
   
-  # measles -----
-  
-  # need to check duration of fever and rash!
-  # fever :
-  # for VA_ChildForm_WHO2012_babel, fever_duration provides units and days_weeks_fever provides values; no days_fever column
-  # for VA_Child_WHO2016_babel, days_fever does the job
-  # for VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel, days_fever again
-  # rash :
-  # for VA_ChildForm_WHO2012_babel, days_weeks_rash (?)
-  # for VA_Child_WHO2016_babel, days_rash
-  # for VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel, days_rash
-  
-  # get age in days :
-  age <- difftime( mdy(responses$date_death_deceased), mdy(responses$date_birth_deceased), units="days")
-  if( !is.na( age ) & age > 120 ){
-    questions <- c("rash", "rash_face", "measles_rash", "fever")
-    questions <- questions[ which( questions %in% names(responses)) ]
-    answers <- responses %>% select( questions )
-    if(any(!is.na(answers))) {
-      if( all( answers == "yes", na.rm=TRUE )){
-        return( "measles")
-      }
-    }
+  if (measles(responses, format)) {
+    return("Measles")
   }
   
-  # meningitis -----
-  
-  questions <- c("fever")
-  questions <- questions[ which( questions %in% names(responses)) ]
-  answers <- responses %>% select( questions )
-  if(any(!is.na(answers))) {
-    if( any( answers == "yes", na.rm=TRUE )){
-      questions <- c("stiff_neck", "bulging_fontanelle")
-      questions <- questions[ which( questions %in% names(responses)) ]
-      answers <- responses %>% select( questions )
-      if( any( answers == "yes", na.rm=TRUE )){
-        return("meningitis")
-      }
-    }
+  if (meningitis(responses, format)) {
+    return("Meningitis")
   }
   
-  # dysentery -----
-  
-  questions <- c("diarrhea")
-  answers <- responses %>% select(questions)
-  if (any(!is.na(answers))) {
-    if (all(answers == "yes", na.rm = TRUE)) {
-      questions <- c("bloody_stool_until_death", "bloody_stool", "diarrhea_bloody")
-      questions <- questions[ which( questions %in% names(responses)) ]
-      answers <- responses %>% select(questions)
-      if (any(!is.na(answers))) {
-        if (any(answers == "yes", na.rm = TRUE)) {
-          return("dysentery") 
-        }
-      }
-    }
+  if (dysentery(responses, format)) {
+    return("Dysentery")
   }
   
-  # need to check frequency / duration!
-      # questions <- c("times_passed_stool",
-      #                "times_diarrhea",
-      #                "number_stools_per_day")
-      # questions <- questions[which(questions %in% names(responses))]
-      # answers <- responses %>% select(questions)
-      # if (any(!is.na(answers))) {
-      #   if (all(answers > 4, na.rm = TRUE)) {
-      #    return("dysentery")
-      #  }
-      # }
-  
-  # compare what happens with VA_Child_WHO2016_babel.csv (Gambia) and 
-  # VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel (Mali)
-  # for these questions:
-  # questions <- c("days_diarrhea", "diarrhea_duration", "days_weeks_diarrhea")
-  
-  # diarrhea -----
-  
-  # as for dysentery, need to check frequency / duration
-  
-  questions <- c("diarrhea")
-  answers <- responses %>% select(questions)
-  if (any(!is.na(answers))) {
-    if (all(answers == "yes", na.rm = TRUE)) {
-      questions <- c("bloody_stool_until_death", "bloody_stool", "diarrhea_bloody")
-      questions <- questions[which(questions %in% names(responses))]
-      answers <- responses %>% select(questions)
-      if (any(!is.na(answers))) {
-        if (all(answers == "no", na.rm = TRUE)) {
-          return("diarrhea")
-        }
-      }
-    }
+  if (diarrhea(responses, format)) {
+    return("Diarrhea")
   }
   
-  # pertussis -----
+  if (pertussis(responses, format)) {
+    return("Pertussis")
+  }
   
-  # have to check duration of cough ; similar issues to above:
-  # VA_ChildForm_WHO2012_babel has cough_duration (units) and days_weeks_cough (values)
-  # VA_Child_WHO2016_babel uses days_cough
-  # VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel uses days_cough
+  if (pneumonia(responses, format)) {
+    return("Pneumonia")
+  }
   
-  # questions <- c("days_cough")
-  # answers <- responses %>% select(questions)
-  # if( answers > 14 ){
-  #   questions <- c("cough_severe", "cough_vomit")
-  #   questions <- questions[ which( questions %in% names(responses)) ]
-  #   answers <- responses %>% select(questions)
-  #   if (any(!is.na(answers))) {
-  #     if (all(answers == "no", na.rm = TRUE)) {
-  #       return("diarrhea")
-  #     }
-  #   }
-  # }
+  if (malaria(responses, format)) {
+    return("Malaria")
+  }
   
-  # pneumonia -----
+  if (possible_dysentery(responses, format)) {
+    return("Possible dysentery")
+  }
   
-  # have to check duration of cough, fast breathing
+  if (possible_diarrhea(responses, format)) {
+    return("Possible diarrhea")
+  }
   
-  # malaria -----
+  if (possible_pneumonia(responses, format)) {
+    return("Possible pneumonia")
+  }
   
-  # need to know if fever continued until death...
-  # VA_ChildForm_WHO2012_babel uses fever_duration and days_weeks_fever
-  # VA_Child_WHO2016_babel uses fever_continue
-  # VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel uses fever_continue
+  if (hemorrhagic_fever(responses, format)) {
+    return("Hemorrhagic fever")
+  }
   
-  # possible dysentery -----
+  if (other_infection(responses, format)) {
+    return("Other infection")
+  }
   
-  # possible diarrhea -----
+  if (residual_infection(responses, format)) {
+    return("Residual infection")
+  }
   
-  # possible pneumonia -----
+  if (malnutrition(responses, format)) {
+    return("Malnutrition")
+  }
   
-  # hemorrhagic fever -----
-  
-  # other infection -----
-  
-  # residual infection -----
-  
-  # malnutrition -----
-  
-  # unspecified if none of the above
-  return("unspecified")
+  # reaching this point means that no specific cause can be determined by this algorithm
+  return("Unspecified")
 }
 
-# utility functions for testing/development
-
-check_all <- function( answers ){
-  for( i in 1:nrow(answers) ){
-    if(any(!is.na(answers))) {
-      if( all( answers[i,] == "yes", na.rm=TRUE)){
-        cat("Nailed it!\n")
+# Durations -----
+fever_duration <- function(responses, format) {
+  if( format == "c12_16"){
+    # fever indicates fever (yes, no, dk)
+    # fever_duration gives units (days, weeks, dk) 
+    # days_weeks_fever provides value
+    # the following computes duration of fever in DAYS
+    if( !is.na( responses$fever ) & responses$fever == "yes" ){
+      if( !is.na(responses$fever_duration) & (responses$fever_duration == "weeks") ){
+        days_fever <- 7*as.numeric(responses$days_weeks_fever)
+      } else if( !is.na(responses$fever_duration) & (responses$fever_duration == "days") ){
+        days_fever <- as.numeric(responses$days_weeks_fever)
       } else{
-        cat("Nothin'\n")
+        days_fever <- NA
       }
     } else{
-      cat("All NAs\n")
+      days_fever <- NA
     }
+    return(days_fever)
+  } else{
+    return( NA )
   }
 }
 
-check_any <- function( answers ){
-  for( i in 1:nrow(answers)){
-    if(any(!is.na(answers))) {
-      if( any( answers[i,] == "yes", na.rm=TRUE)){
-        cat("Nailed it!\n")
+rash_duration <- function(responses, format) {
+  if( format == "c12_16"){
+    # rash indicates skin rash (yes, no, dk)
+    # rash_duration gives units (days, weeks, dk) 
+    # days_weeks_rash provides value
+    # the following computes duration of rash in DAYS
+    if( !is.na( responses$rash ) & responses$rash == "yes" ){
+      if( !is.na(responses$rash_duration) & responses$rash_duration == "weeks"){
+        days_rash <- 7*as.numeric(responses$days_weeks_rash)
+      } else if( !is.na(responses$rash_duration) & responses$rash_duration == "days" ){
+        days_rash <- as.numeric(responses$days_weeks_rash)
       } else{
-        cat("Nothin'\n")
+        days_rash <- NA
       }
     } else{
-      cat("All NAs\n")
+      days_rash <- NA
     }
+    return(days_rash) 
+  } else{
+    return(NA)
   }
+}
+
+cough_duration <- function(responses, format) {
+  if( format == "c12_16"){
+    # cough indicates whether the child had a cough (yes, no, dk)
+    # cough_duration gives units (days, weeks, dk) 
+    # days_weeks_cough provides value
+    # the following computes duration of cough in DAYS
+    if( !is.na( responses$cough ) & responses$cough == "yes" ){
+      if( !is.na(responses$cough_duration) & responses$cough_duration == "weeks"){
+        days_cough <- 7*as.numeric(responses$days_weeks_cough)
+      } else if( !is.na(responses$cough_duration) & responses$cough_duration == "days" ){
+        days_cough <- as.numeric(responses$days_weeks_cough)
+      } else{
+        days_cough <- NA
+      }
+    } else{
+      days_cough <- NA
+    }
+    return(days_cough)
+  } else{
+    return(NA)
+  }
+}
+
+diarrhea_duration <- function(responses, format) {
+  if( format == "c12_16"){
+    # diarrhea indicates whether the child had diarrhea (yes, no, dk)
+    # diarrhea_duration gives units (days, weeks, dk) 
+    # days_weeks_diarrhea provides value
+    # the following computes duration of diarrhea in DAYS
+    if( !is.na( responses$diarrhea ) & responses$diarrhea == "yes" ){
+      if( !is.na(responses$diarrhea_duration) & responses$diarrhea_duration == "weeks"){
+        days_diarrhea <- 7*as.numeric(responses$days_weeks_diarrhea)
+      } else if( !is.na(responses$diarrhea_duration) & responses$diarrhea_duration == "days" ){
+        days_diarrhea <- as.numeric(responses$days_weeks_diarrhea)
+      } else{
+        days_diarrhea <- NA
+      }
+    } else{
+      days_diarrhea <- NA
+    }
+    return(days_diarrhea)
+  } else{
+    return(NA)
+  }
+}
+
+fast_breathing_duration <- function(responses, format) {
+  if( format == "c12_16"){
+    # fast_breathing indicates whether the child had fast breathing (yes, no, dk)
+    # fast_breathing_duration gives units (days, weeks, dk) 
+    # days_weeks_fast_breathing provides value
+    # the following computes duration of fast breathing in DAYS
+    if( !is.na( responses$fast_breathing ) & responses$fast_breathing == "yes" ){
+      if( !is.na(responses$fast_breathing_duration) & responses$fast_breathing_duration == "weeks"){
+        days_fast_breathing <- 7*as.numeric(responses$days_weeks_fast_breathing)
+      } else if( !is.na(responses$fast_breathing_duration) & responses$fast_breathing_duration == "days" ){
+        days_fast_breathing <- as.numeric(responses$days_weeks_fast_breathing)
+      } else{
+        days_fast_breathing <- NA
+      }
+    } else{
+      days_fast_breathing <- NA
+    }
+    return(days_fast_breathing)
+  } else{
+    return(NA)
+  }
+}
+
+# Injury -----
+injury <- function( responses, format ){
+  return(FALSE)
+}
+
+# AIDS -----
+aids <- function( responses, format ){
+  return(FALSE)
+}
+
+# Malnutrition (underlying) -----
+underlying_malnutrition <- function( responses, format ){
+  return(FALSE)
+}
+
+# Measles -----
+measles <- function( responses, format ){
+  return(FALSE)
+}
+
+# Meningitis -----
+meningitis <- function( responses, format ){
+  return(FALSE)
+}
+
+# Dysentery -----
+dysentery <- function( responses, format ){
+  return(FALSE)
+}
+
+# Diarrhea -----
+diarrhea <- function( responses, format ){
+  return(FALSE)
+}
+
+# Pertussis -----
+pertussis <- function( responses, format ){
+  return(FALSE)
+}
+
+# Pneumonia -----
+pneumonia <- function( responses, format ){
+  return(FALSE)
+}
+
+# Malaria -----
+malaria <- function( responses, format ){
+  return(FALSE)
+}
+
+# Possible dysentery -----
+possible_dysentery <- function( responses, format ){
+  return(FALSE)
+}
+
+# Possible diarrhea -----
+possible_diarrhea <- function( responses, format ){
+  return(FALSE)
+}
+
+# Possible pneumonia -----
+possible_pneumonia <- function( responses, format ){
+  return(FALSE)
+}
+
+# Hemorrhagic fever -----
+hemorrhagic_fever <- function( responses, format ){
+  return(FALSE)
+}
+
+# Other infection -----
+other_infection <- function( responses, format ){
+  return(FALSE)
+}
+
+# Residual infection -----
+residual_infection <- function( responses, format ){
+  return(FALSE)
+}
+
+# Malnutrition -----
+malnutrition <- function( responses, format ){
+  return(FALSE)
 }
