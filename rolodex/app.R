@@ -9,31 +9,33 @@
 
 library(shiny)
 library(tidyverse)
+
 babel <- read_csv("babel.csv")
-# NEED TO UPDATE!
-conditions <- c("injury", "fever", "rash", "diarrhea")
 mapper_formats <- levels( as.factor( babel$format ))
+
+# configure hierarchical algorithm (e.g., based on Kalter et al.)
+# (a) name of resulting list is conditions, (b) names(conditions) are the causes, (c) conditions[[cause]] are relevant conditions
+source("kalter_config.R")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
-    # Application title
-    # titlePanel("babel rolodex"),
+    titlePanel("babel rolodex"),
 
-    # Sidebar with a slider input for number of bins 
     fluidRow(
-        #sidebarPanel(
         column(width=2,
-            selectInput("condition","Choose a condition", choices = conditions)
+               selectInput("cause","Cause of death", choices = names(conditions))
         ),
         column(width=2,
-            selectInput("mapper_format", "Choose a mapper format", choices = mapper_formats)
+               uiOutput("conditionSelection")
+        ),
+        column(width=2,
+            selectInput("mapper_format", "Mapper format", choices = mapper_formats)
         )
     ),
 
-        # Show a plot of the generated table
     fluidRow(
-        column(width=1,
+        column(width=12,
             tableOutput("table")
         )
     )
@@ -41,16 +43,14 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
-    # output$distPlot <- renderPlot({
-    #     # generate bins based on input$bins from ui.R
-    #     
-    # })
-    output$table <- renderTable({
-        fever <- babel[ grep(input$condition,babel$question_full), ]
-        fever <- fever %>% filter(format==input$mapper_format)
-        # knitr::kable(fever)
+    
+    output$conditionSelection <- renderUI({
+        selectInput("condition","Relevant conditions", choices = sort(conditions[[input$cause]]))
     })
+
+    output$table <- renderTable({
+        babel[ grep(input$condition, babel$question_full, fixed=TRUE), ] %>% filter(format==input$mapper_format)
+    }, striped = TRUE)
 }
 
 # Run the application 
