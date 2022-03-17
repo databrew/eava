@@ -1,5 +1,5 @@
 ---
-title: "Catalog of `babel` causes and conditions"
+title: "`babel` EAVA catalog"
 output: html_document
 ---
 
@@ -34,11 +34,11 @@ for(level in levels(as.factor(fever$format))) {
     filter(format == level) %>%
     select(variable:country, question_full) 
   print( knitr::kable(df, caption=paste0("Format: ",level) ) )
-  ft <- df %>%
-    flextable() %>%
-    set_caption(level) %>%
-    autofit()
-  flextable_to_rmd(ft)
+  # ft <- df %>%
+  #   flextable() %>%
+  #   set_caption(level) %>%
+  #   autofit()
+  # flextable_to_rmd(ft)
 }
 ```
 
