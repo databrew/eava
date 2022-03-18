@@ -14,6 +14,7 @@ babel <- read_csv("babel.csv")
 mapper_formats <- levels( as.factor( babel$format ))
 
 # configure hierarchical algorithm (e.g., based on Kalter et al.)
+# the code below assumes that:
 # (a) name of resulting list is conditions, (b) names(conditions) are the causes, (c) conditions[[cause]] are relevant conditions
 source("kalter_config.R")
 
