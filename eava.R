@@ -1,10 +1,10 @@
 # implements the hierarchical expert algorithm for verbal autopsy described in 
 # [Kalter et al. 2015](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4416334/) (doi: 10.7189/jogh.05.010415)
 
-library(vida)
 library(dplyr)
 library(tidyr)
 library(lubridate)
+# library(vida)
 # data('master')
 
 supported_formats <- c("c12_16")
@@ -37,7 +37,7 @@ get_causes <- function(babel_data, format) {
 #' 
 cod <- function(responses, format) {
   
-  # for later use, determine durations of conditions in _DAYS_
+  # for later use, determine durations of conditions in DAYS
   days_fever <- fever_duration(responses, format) 
   days_rash <- rash_duration(responses, format) 
   days_cough <- cough_duration(responses, format) 
@@ -56,7 +56,7 @@ cod <- function(responses, format) {
     return("Malnutrition (underlying)")
   }
   
-  if (measles(responses, format)) {
+  if (measles(responses, format, days_rash, days_fever )) {
     return("Measles")
   }
   
@@ -64,19 +64,19 @@ cod <- function(responses, format) {
     return("Meningitis")
   }
   
-  if (dysentery(responses, format)) {
+  if (dysentery(responses, format, days_diarrhea)) {
     return("Dysentery")
   }
   
-  if (diarrhea(responses, format)) {
+  if (diarrhea(responses, format, days_diarrhea)) {
     return("Diarrhea")
   }
   
-  if (pertussis(responses, format)) {
+  if (pertussis(responses, format, days_cough)) {
     return("Pertussis")
   }
   
-  if (pneumonia(responses, format)) {
+  if (pneumonia(responses, format, days_cough, days_fast_breathing)) {
     return("Pneumonia")
   }
   
@@ -104,8 +104,12 @@ cod <- function(responses, format) {
     return("Other infection")
   }
   
-  if (residual_infection(responses, format)) {
-    return("Residual infection")
+  # if (residual_infection(responses, format)) {
+  #   return("Residual infection")
+  # }
+  
+  if (possible_malaria(responses, format)) {
+    return("Possible malaria")
   }
   
   if (malnutrition(responses, format)) {
@@ -117,6 +121,7 @@ cod <- function(responses, format) {
 }
 
 # Durations -----
+
 fever_duration <- function(responses, format) {
   if( format == "c12_16"){
     # fever indicates fever (yes, no, dk)
@@ -233,86 +238,342 @@ fast_breathing_duration <- function(responses, format) {
 }
 
 # Injury -----
+
 injury <- function( responses, format ){
-  return(FALSE)
+  if( format == "c12_16"){
+    questions <- c("die_at_site_of_injury_accident", "injury_accident", "road_accident",
+                   "injury_fall", "drown", "accidentally_poisoned", "poisoning",
+                   "animal", "venomous_animal", "burn", "assault", "other_injury" )
+    questions <- questions[ which( questions %in% names(responses)) ]
+    answers <- responses %>% select( all_of(questions) )
+    if(any(!is.na(answers))) {
+      if (any(answers == "yes", na.rm = TRUE)) {
+        return(TRUE)
+      } else{
+        return(FALSE)
+      }
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
 }
 
 # AIDS -----
+
 aids <- function( responses, format ){
-  return(FALSE)
+  if( format == "c12_16" ){
+    # duration of diarrhea, fever, skin rash all need to be checked!! 
+    
+    questions <- c("swell_armpits", "rash_mouth")
+    questions <- questions[ which( questions %in% names(responses)) ]
+    answers <- responses %>% select( questions )
+    
+    if(any(!is.na(answers))) {
+      if( any( answers == "yes", na.rm=TRUE ) ){
+        questions <- c("thin", "protruding_abdomen", "diarrhea", "fever", 
+                       "rash", "fast_breathing", "chest_pull_in")
+        questions <- questions[ which( questions %in% names(responses)) ]
+        answers <- responses %>% select( questions )
+        if( length( which( answers == "yes")) >= 3 ){
+          return(TRUE)
+        } else{
+          return(FALSE)
+        }
+      } else{
+        return(FALSE)
+      }
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
 }
 
 # Malnutrition (underlying) -----
+
 underlying_malnutrition <- function( responses, format ){
-  return(FALSE)
+  if( format == "c12_16" ){
+    questions <- c("thin", "swell_feet", "swell_leg")
+    questions <- questions[ which( questions %in% names(responses)) ]
+    answers <- responses %>% select( questions )
+    if(any(!is.na(answers))) {
+      if( any( answers == "yes", na.rm=TRUE )){
+        return(TRUE)
+      } else{
+        return(FALSE)
+      }
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
 }
 
 # Measles -----
-measles <- function( responses, format ){
-  return(FALSE)
+
+measles <- function( responses, format, days_rash, days_fever ){
+  if( format == "c12_16" ){
+    # get age in days :
+    age <- difftime( mdy(responses$date_death_deceased), mdy(responses$date_birth_deceased), units="days")
+    if( !is.na( age ) & age > 120 ){
+      if( !is.na(days_rash) & (days_rash > 3) & !is.na(days_fever) & (days_fever > 3)){
+        return(TRUE)
+      } else{
+        return(FALSE)
+      }
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
 }
 
 # Meningitis -----
+
 meningitis <- function( responses, format ){
-  return(FALSE)
+  if( format == "c12_16" ){
+    questions <- c("fever")
+    questions <- questions[ which( questions %in% names(responses)) ]
+    answers <- responses %>% select( questions )
+    if(any(!is.na(answers))) {
+      if( any( answers == "yes", na.rm=TRUE )){
+        questions <- c("stiff_neck", "bulging_fontanelle")
+        questions <- questions[ which( questions %in% names(responses)) ]
+        answers <- responses %>% select( questions )
+        if( any( answers == "yes", na.rm=TRUE )){
+          return(TRUE)
+        } else{
+          return(FALSE)
+        }
+      } else{
+        return(FALSE)
+      }
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
 }
 
 # Dysentery -----
-dysentery <- function( responses, format ){
-  return(FALSE)
+
+dysentery <- function( responses, format, days_diarrhea ){
+  if( format == "c12_16" ){
+    if( (!is.na( days_diarrhea ) & (days_diarrhea > 14)) &
+        (!is.na( responses$bloody_stool ) & (responses$bloody_stool == "yes")) ){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
 }
 
 # Diarrhea -----
-diarrhea <- function( responses, format ){
-  return(FALSE)
+
+diarrhea <- function( responses, format, days_diarrhea ){
+  if( format == "c12_16" ){
+    if( (!is.na( days_diarrhea ) & (days_diarrhea > 14)) &
+        (!is.na( responses$bloody_stool ) & (responses$bloody_stool == "no")) ){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
 }
 
 # Pertussis -----
-pertussis <- function( responses, format ){
-  return(FALSE)
+
+pertussis <- function( responses, format, days_cough ){
+  if( format == "c12_16" ){
+    if( !is.na(days_cough) & (days_cough > 14) ){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
 }
 
 # Pneumonia -----
-pneumonia <- function( responses, format ){
-  return(FALSE)
+
+pneumonia <- function( responses, format, days_cough, days_fast_breathing ){
+  if( format == "c12_16" ){
+    if( ( !is.na(responses$difficulty_breathing) & (responses$difficulty_breathing=="yes")) | 
+        ( !is.na(days_cough) & (days_cough > 2) ) ){
+      if( (!is.na( days_fast_breathing ) & (days_fast_breathing > 2)) | 
+          (!is.na( responses$noisy_breathing) & (responses$noisy_breathing=="yes" )) |
+          (!is.na( responses$chest_pull_in) & (responses$chest_pull_in=="yes" )) ){
+        return(TRUE)
+      } else{
+        return(FALSE)
+      }
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
 }
 
 # Malaria -----
+
 malaria <- function( responses, format ){
-  return(FALSE)
+  if( format == "c12_16" ){
+    # fever continued until death?
+    if( (!is.na( responses$fever ) & (responses$fever == "yes")) &
+        (!is.na( responses$stiff_neck ) & (responses$stiff_neck == "no")) &
+        # (!is.na( responses$bulging_fontanelle ) & (responses$bulging_fontanelle == "no")) &
+        ( (!is.na(responses$difficulty_breathing) & (responses$difficulty_breathing == "yes")) |
+          (!is.na(responses$convulsions) & (responses$convulsions == "yes")) |
+          (!is.na(responses$unconscious) & (responses$unconscious == "yes")) ) ){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
 }
 
 # Possible dysentery -----
+
 possible_dysentery <- function( responses, format ){
-  return(FALSE)
+  if( format == "c12_16" ){
+    if( (!is.na(responses$diarrhea) & (responses$diarrhea == "yes")) &
+        (!is.na( responses$bloody_stool ) & (responses$bloody_stool == "yes")) &
+        ( (!is.na(responses$fever) & (responses$fever == "yes")) | 
+          (!is.na(responses$convulsions) & (responses$convulsions == "yes")) |
+          (!is.na(responses$unconscious) & (responses$unconscious == "yes")) ) ){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
 }
 
 # Possible diarrhea -----
+
 possible_diarrhea <- function( responses, format ){
-  return(FALSE)
+  if( format == "c12_16" ){
+    if( (!is.na(responses$diarrhea) & (responses$diarrhea == "yes")) &
+        (!is.na( responses$bloody_stool ) & (responses$bloody_stool == "no")) &
+        ( (!is.na(responses$fever) & (responses$fever == "yes")) | 
+          (!is.na(responses$convulsions) & (responses$convulsions == "yes")) |
+          (!is.na(responses$unconscious) & (responses$unconscious == "yes")) ) ){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
 }
 
 # Possible pneumonia -----
+
 possible_pneumonia <- function( responses, format ){
-  return(FALSE)
+  if( format == "c12_16" ){
+    if( ( ( (!is.na(responses$cough) & (responses$cough=="yes")) |
+            (!is.na(responses$difficulty_breathing) & (responses$difficulty_breathing == "yes")) ) |
+          ( (!is.na(responses$fast_breathing) & (responses$fast_breathing == "yes")) &
+            ( (!is.na(responses$chest_pull_in) & (responses$chest_pull_in == "yes")) |
+              (!is.na(responses$noisy_breathing) & (responses$noisy_breathing == "yes")) ) ) ) &
+        ( (!is.na(responses$cough) & (responses$cough=="yes")) |
+          (!is.na(responses$fast_breathing) & (responses$fast_breathing=="yes")) |
+          (!is.na(responses$chest_pull_in) & (responses$chest_pull_in=="yes")) |
+          (!is.na(responses$noisy_breathing) & (responses$noisy_breathing=="yes")) |
+          (!is.na(responses$fever) & (responses$fever=="yes")) |
+          (!is.na(responses$convulsions) & (responses$convulsions=="yes")) |
+          (!is.na(responses$unconscious) & (responses$unconscious=="yes")) ) ){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
 }
 
 # Hemorrhagic fever -----
+
 hemorrhagic_fever <- function( responses, format ){
-  return(FALSE)
+  if( format == "c12_16" ){
+    if( (!is.na(responses$fever) & (responses$fever=="yes")) &
+        (!is.na(responses$bleed_nose_mouth_anus) & (responses$bleed_nose_mouth_anus == "yes")) ){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
 }
 
 # Other infection -----
+
 other_infection <- function( responses, format ){
-  return(FALSE)
+  if( format == "c12_16" ){
+    if( (!is.na(responses$fever) & (responses$fever=="yes")) & 
+        ( ( !is.na(responses$rash) & (responses$rash=="yes")) |
+          (!is.na(responses$convulsions) & (responses$convulsions=="yes")) | 
+          (!is.na(responses$unconscious) & (responses$unconscious=="yes")) ) ){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
 }
 
 # Residual infection -----
-residual_infection <- function( responses, format ){
-  return(FALSE)
+#
+# residual_infection <- function( responses, format ){
+#   if( format == "c12_16" ){
+#     
+#   } else{ 
+#     return(FALSE)
+#   }
+# }
+
+# Possible malaria -----
+
+possible_malaria <- function( responses, format ){
+  if( format == "c12_16" ){
+    if( !is.na(responses$fever) & (responses$fever == "yes") ){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
 }
 
 # Malnutrition -----
+
 malnutrition <- function( responses, format ){
-  return(FALSE)
+  if( format == "c12_16" ){
+    if( (!is.na(responses$thin) & (responses$thin == "yes")) |
+        (!is.na(responses$swell_feet) & (responses$swell_feet == "yes")) ){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
 }
