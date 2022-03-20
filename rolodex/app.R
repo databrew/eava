@@ -10,7 +10,8 @@
 library(shiny)
 library(tidyverse)
 
-babel <- read_csv("babel.csv")
+babel <- read_csv("babel.csv") %>%
+    select(-response_standarized)
 mapper_formats <- levels( as.factor( babel$format ))
 
 # configure hierarchical algorithm (e.g., based on Kalter et al.)
@@ -50,7 +51,7 @@ server <- function(input, output) {
     })
 
     output$table <- renderTable({
-        babel[ grep(input$condition, babel$question_full, fixed=TRUE), ] %>% filter(format==input$mapper_format)
+        babel[ grep(input$condition, babel$question_full, fixed=TRUE, ignore.case = TRUE), ] %>% filter(format==input$mapper_format)
     }, striped = TRUE)
 }
 

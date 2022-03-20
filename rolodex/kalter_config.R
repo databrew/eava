@@ -1,9 +1,9 @@
 
 conditions <- list()
 conditions[["Injury"]] <- c("accident","fall","drown","poison","bite","sting","burn","violence","injury")
-conditions[["AIDS"]] <- c("swell","rash","thin","protruding","diarrhea","stool","fever","breathing","chest")
+conditions[["AIDS"]] <- c("swell","armpit","rash","mouth", "tongue","thin","protruding","diarrhea","stool","fever","breathing","chest")
 conditions[["Malnutrition (underlying)"]] <- c("thin","swell")
-conditions[["Measles"]] <- c("date","age","rash","fever","face")
+conditions[["Measles"]] <- c("date","age","Date of death", "Date of birth","rash","fever","face")
 conditions[["Meningitis"]] <- c("fever","neck","fontanelle")
 conditions[["Dysentery"]] <- c("diarrhea","stool")
 conditions[["Diarrhea"]] <- c("diarrhea","stool")
