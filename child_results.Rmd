@@ -1,0 +1,43 @@
+---
+title: "VIDA: Causes of death for children"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse)
+library(flextable)
+source("kalter_child.R")
+```
+
+## EAVA algorithm 
+
+Expert Algorithm for Verbal Autopsy (EAVA) based on
+
+> Kalter et al., [Direct estimates of national neonatal and child cause–specific mortality proportions in Niger by expert algorithm and physician–coded analysis of verbal autopsy interviews](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4416334/), J Glob Health. 2015 Jun; 5(1): 010415
+
+## Sites and available data
+
+* Kenya
+  * ?? datasets
+  * time range
+* The Gambia 
+  * ?? datasets
+  * time range
+* Mali
+  * ?? datasets
+  * time range
+
+## Results
+
+```{r echo=FALSE, message=FALSE}
+df <- read_csv("data/gambia_babel/bn_hdss/VA_Child_WHO2016_babel.csv")
+causes <- get_causes( df, format="c16")
+causes <- data.frame( Cause = causes )
+causes %>% group_by(Cause) %>% tally %>% regulartable() %>% autofit()
+```
+
+
+
+
