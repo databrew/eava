@@ -13,7 +13,7 @@ conditions[["Malaria"]] <- c("fever","neck","fontanelle","pallor","breathing","c
 conditions[["Possible dysentery"]] <- c("diarrhea","stool","fever","convulsion","unconscious")
 conditions[["Possible diarrhea"]] <- c("diarrhea","stool","fever","convulsion","unconscious")
 conditions[["Possible pneumonia"]] <- c("cough","breathing","chest","stridor","grunt","wheez","vomit","convulsion","unconscious")
-conditions[["Hemorrhagic fever"]] <- c("fever","blood","skin")
+conditions[["Hemorrhagic fever"]] <- c("fever","blood","bleed","skin")
 conditions[["Other infection"]] <- c("fever","rash","convulsion","unconscious")
 conditions[["Possible malaria"]] <- c("fever")
 conditions[["Malnutrition"]] <- c("thin","swell")
