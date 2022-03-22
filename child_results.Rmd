@@ -1,43 +1,164 @@
 ---
 title: "VIDA: Causes of death for children"
-output: ioslides_presentation
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, 
+                      message=FALSE,
+                      warning=FALSE)
 
 library(tidyverse)
 library(flextable)
+library(knitr)
+library(kableExtra)
 source("kalter_child.R")
 ```
 
-## EAVA algorithm 
+# EAVA algorithm 
 
 Expert Algorithm for Verbal Autopsy (EAVA) based on
 
 > Kalter et al., [Direct estimates of national neonatal and child cause–specific mortality proportions in Niger by expert algorithm and physician–coded analysis of verbal autopsy interviews](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4416334/), J Glob Health. 2015 Jun; 5(1): 010415
 
-## Sites and available data
+# Results for Mali data
 
-* Kenya
-  * ?? datasets
-  * time range
-* The Gambia 
-  * ?? datasets
-  * time range
-* Mali
-  * ?? datasets
-  * time range
+```{r}
+df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_results_babel.csv")
+causes <- get_causes( df, format="champs2")
+causes <- data.frame( Cause = causes )
+causes %>% 
+  group_by(Cause) %>% 
+  tally %>% 
+  regulartable() %>% 
+  theme_zebra() %>% 
+  set_caption("CHAMPS_Verbal_Autopsy_Form_results.csv") %>% 
+  autofit()
+```
 
-## Results
+```{r}
+df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_1_results_babel.csv")
+causes <- get_causes( df, format="champs2")
+causes <- data.frame( Cause = causes )
+causes %>% 
+  group_by(Cause) %>% 
+  tally %>% 
+  regulartable() %>% 
+  theme_zebra() %>% 
+  set_caption("CHAMPS_Verbal_Autopsy_Form_v2_04_1_results.csv") %>% 
+  autofit()
+```
 
-```{r echo=FALSE, message=FALSE}
+```{r}
+df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_results_babel.csv")
+causes <- get_causes( df, format="champs2")
+causes <- data.frame( Cause = causes )
+causes %>% 
+  group_by(Cause) %>% 
+  tally %>% 
+  regulartable() %>% 
+  theme_zebra() %>% 
+  set_caption("CHAMPS_Verbal_Autopsy_Form_v2_04_results.csv") %>% 
+  autofit()
+```
+
+```{r}
+df <- read_csv("data/mali_babel/VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel.csv")
+causes <- get_causes( df, format="champs1")
+causes <- data.frame( Cause = causes )
+causes %>% 
+  group_by(Cause) %>% 
+  tally %>% 
+  regulartable() %>% 
+  theme_zebra() %>% 
+  set_caption("VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018.csv") %>% 
+  autofit()
+```
+
+# Results for Gambia data
+
+## BN HDSS 
+
+```{r}
 df <- read_csv("data/gambia_babel/bn_hdss/VA_Child_WHO2016_babel.csv")
 causes <- get_causes( df, format="c16")
 causes <- data.frame( Cause = causes )
-causes %>% group_by(Cause) %>% tally %>% regulartable() %>% autofit()
+causes %>% 
+  group_by(Cause) %>% 
+  tally %>% 
+  regulartable() %>% 
+  theme_zebra() %>% 
+  set_caption("VA_Child_WHO2016.csv") %>% 
+  autofit()
+```
+
+```{r}
+df <- read_csv("data/gambia_babel/bn_hdss/VA_ChildForm_WHO2012_babel.csv")
+causes <- get_causes( df, format="c12_16")
+causes <- data.frame( Cause = causes )
+causes %>% 
+  group_by(Cause) %>% 
+  tally %>% 
+  regulartable() %>% 
+  theme_zebra() %>% 
+  set_caption("VA_ChildForm_WHO2012.csv") %>% 
+  autofit()
+```
+
+## BS HDSS 
+
+```{r}
+df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_Indepth_2008-2012_clean duration_babel.csv")
+causes <- get_causes( df, format="c08_12")
+causes <- data.frame( Cause = causes )
+causes %>% 
+  group_by(Cause) %>% 
+  tally %>% 
+  regulartable() %>% 
+  theme_zebra() %>% 
+  set_caption("VA_Child_Indepth_2008-2012_clean duration.csv") %>% 
+  autofit()
 ```
 
 
+```{r}
+df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_Indepth_2008-2012_babel.csv")
+causes <- get_causes( df, format="c08_12")
+causes <- data.frame( Cause = causes )
+causes %>% 
+  group_by(Cause) %>% 
+  tally %>% 
+  regulartable() %>% 
+  theme_zebra() %>% 
+  set_caption("VA_Child_Indepth_2008-2012.csv") %>% 
+  autofit()
+```
 
+
+```{r}
+df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2012-mid 2016_babel.csv")
+causes <- get_causes( df, format="c12_16")
+causes <- data.frame( Cause = causes )
+causes %>% 
+  group_by(Cause) %>% 
+  tally %>% 
+  regulartable() %>% 
+  theme_zebra() %>% 
+  set_caption("VA_Child_WHO2012-mid 2016.csv") %>% 
+  autofit()
+```
+
+
+```{r}
+df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2016_babel.csv")
+causes <- get_causes( df, format="c16")
+causes <- data.frame( Cause = causes )
+causes %>% 
+  group_by(Cause) %>% 
+  tally %>% 
+  regulartable() %>% 
+  theme_zebra() %>% 
+  set_caption("VA_Child_WHO2016.csv") %>% 
+  autofit()
+```
 
