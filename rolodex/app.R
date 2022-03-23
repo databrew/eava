@@ -51,7 +51,7 @@ server <- function(input, output) {
     })
 
     output$table <- renderTable({
-        babel[ grep(input$condition, babel$question_full, fixed=TRUE, ignore.case = TRUE), ] %>% filter(format==input$mapper_format)
+        babel[ grep(input$condition, babel$question_full, fixed=TRUE), ] %>% filter(format==input$mapper_format)
     }, striped = TRUE)
 }
 
