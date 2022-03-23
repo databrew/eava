@@ -464,9 +464,7 @@ difficulty_breathing_duration <- function( responses, days_difficulty_breathing_
 
 age_in_days <- function( responses, format ){
   # CHECK THE USE OF mdy HERE!!!
-  if( format == "c12_16"){
-    return( difftime( mdy(responses$date_death_deceased), mdy(responses$date_birth_deceased), units="days") )
-  } else if( format == "c16" ){
+  if( format != "c08_12"){
     return( difftime( mdy(responses$date_death_deceased), mdy(responses$date_birth_deceased), units="days") )
   } else{
     return(0)
