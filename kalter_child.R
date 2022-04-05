@@ -12,6 +12,30 @@ supported_formats <- c("champs1", "champs2", "champs3", "child_mali",
                        "who2007", "who2010_2", "who2010", "who2012_2", "who2012",
                        "who2016", "c2012", "c2016", "c08_12", "c12_16", "c16")
 
+death_dates <- function( babel_data, format ){
+  if( format != "c08_12"){
+    dates <- range( mdy(df$date_death_deceased ), na.rm = TRUE)
+    return( data.frame( "First death" = dates[1], "Last death"= dates[2] ) )
+  } else{
+    return( return( data.frame( "First death" = NA, "Last death"= NA ) ) )
+  }
+}
+
+interview_dates <- function( babel_data, format ){
+  question_names <- names( babel_data )
+  interview_date <- "interview_date" %in% question_names
+  visit_date <- "visit_date" %in% question_names
+  if( interview_date ){
+    dates <- range( mdy(df$interview_date ), na.rm = TRUE)
+    return( data.frame( "First interview" = dates[1], "Last interview"= dates[2] ) )
+  } else if( visit_date ){
+    dates <- range( mdy(df$visit_date ), na.rm = TRUE)
+    return( data.frame( "First visit" = dates[1], "Last visit"= dates[2] ) )
+  } else{
+    return( data.frame( "First interview" = NA, "Last interview"= NA ) )
+  }
+}
+
 #' Determine causes of death for ALL decedents in a verbal autopsy (VA) dataset that has been
 #' translated into `babel` format with the `vida` package
 #' 

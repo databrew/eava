@@ -26,7 +26,7 @@ ui <- fluidPage(
 
     fluidRow(
         column(width=2,
-               selectInput("cause","Cause of death", choices = names(conditions))
+               selectInput("cause","Variables related to", choices = names(conditions))
         ),
         column(width=2,
                uiOutput("conditionSelection")
