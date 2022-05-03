@@ -46,103 +46,58 @@ interview_dates <- function( babel_data, format ){
 get_causes <- function(babel_data, format) {
   
   # check availability of certain indicators -- depends on format, not on responses for an individual decedent
-  question_names <- names( babel_data )
-  fever_available <- "fever" %in% question_names
-  cough_available <- "cough" %in% question_names
-  stiff_neck_available <- "stiff_neck" %in% question_names
-  bulging_fontanelle_available <- "bulging_fontanelle" %in% question_names
-  diarrhea_available <- "diarrhea" %in% question_names
-  swell_feet_available <- "swell_feet" %in% question_names
-  swell_leg_available <- "swell_leg" %in% question_names
-  swell_armpits_available <- "swell_armpits" %in% question_names
-  lumps_armpit_available <- "lumps_armpit" %in% question_names
-  rash_mouth_available <- "rash_mouth" %in% question_names
-  bloody_stool_available <- "bloody_stool" %in% question_names
-  thin_available <- "thin" %in% question_names
-  protruding_abdomen_available <- "protruding_abdomen" %in% question_names
-  fast_breathing_available <- "fast_breathing" %in% question_names
-  chest_indrawing_available <- "chest_pull_in" %in% question_names
-  cough_severe_available <- "cough_severe" %in% question_names
-  cough_vomit_available <- "cough_vomit" %in% question_names
-  difficulty_breathing_available <- "difficulty_breathing" %in% question_names
-  days_difficulty_breathing_available <- "days_difficulty_breathing" %in% question_names
-  noisy_breathing_available <- "noisy_breathing" %in% question_names
-  fever_continue_available <- "fever_continue" %in% question_names
-  fever_pattern_available <- "fever_pattern" %in% question_names
-  fever_severe_available <- "fever_severe" %in% question_names
-  fever_severity_available <- "fever_severity" %in% question_names
-  convulsions_available <- "convulsions" %in% question_names
-  unconscious_available <- "unconscious" %in% question_names
-  skin_black_available <- "skin_black" %in% question_names
-  place_rash_available <- "place_rash" %in% question_names
-  rash_body_available <- "rash_body" %in% question_names
-  rash_trunk_available <- "rash_trunk" %in% question_names
-  measles_rash_available <- "measles_rash" %in% question_names
-  rash_face_available <- "rash_face" %in% question_names
-  rash_look_available <- "rash_look" %in% question_names
-  red_eyes_available <- "red_eyes" %in% question_names
-  unresponsive_available <- "unresponsive" %in% question_names
-  yellow_eyes_available <- "yellow_eyes" %in% question_names
-  yellow_skin_available <- "yellow_skin" %in% question_names
-  pale_available <- "pale" %in% question_names
-  hair_red_yellow_available <- "hair_red_yellow" %in% question_names
-  tb_available <- "tb" %in% question_names
-  times_diarrhea_available <- "times_diarrhea" %in% question_names
-  number_stools_per_day_available <- "number_stools_per_day" %in% question_names
-  times_passed_stool_available <- "times_passed_stool" %in% question_names
-  sunken_eye_available <- "sunken_eye" %in% question_names
-  sunken_fontanelle_available <- "sunken_fontanelle" %in% question_names
+  question_names <<- names( babel_data )
+  fever_available <<- "fever" %in% question_names
+  cough_available <<- "cough" %in% question_names
+  stiff_neck_available <<- "stiff_neck" %in% question_names
+  bulging_fontanelle_available <<- "bulging_fontanelle" %in% question_names
+  diarrhea_available <<- "diarrhea" %in% question_names
+  swell_feet_available <<- "swell_feet" %in% question_names
+  swell_leg_available <<- "swell_leg" %in% question_names
+  swell_armpits_available <<- "swell_armpits" %in% question_names
+  lumps_armpit_available <<- "lumps_armpit" %in% question_names
+  rash_mouth_available <<- "rash_mouth" %in% question_names
+  bloody_stool_available <<- "bloody_stool" %in% question_names
+  thin_available <<- "thin" %in% question_names
+  protruding_abdomen_available <<- "protruding_abdomen" %in% question_names
+  fast_breathing_available <<- "fast_breathing" %in% question_names
+  chest_indrawing_available <<- "chest_pull_in" %in% question_names
+  cough_severe_available <<- "cough_severe" %in% question_names
+  cough_vomit_available <<- "cough_vomit" %in% question_names
+  difficulty_breathing_available <<- "difficulty_breathing" %in% question_names
+  days_difficulty_breathing_available <<- "days_difficulty_breathing" %in% question_names
+  noisy_breathing_available <<- "noisy_breathing" %in% question_names
+  fever_continue_available <<- "fever_continue" %in% question_names
+  fever_pattern_available <<- "fever_pattern" %in% question_names
+  fever_severe_available <<- "fever_severe" %in% question_names
+  fever_severity_available <<- "fever_severity" %in% question_names
+  convulsions_available <<- "convulsions" %in% question_names
+  unconscious_available <<- "unconscious" %in% question_names
+  skin_black_available <<- "skin_black" %in% question_names
+  place_rash_available <<- "place_rash" %in% question_names
+  rash_body_available <<- "rash_body" %in% question_names
+  rash_trunk_available <<- "rash_trunk" %in% question_names
+  measles_rash_available <<- "measles_rash" %in% question_names
+  rash_face_available <<- "rash_face" %in% question_names
+  rash_look_available <<- "rash_look" %in% question_names
+  red_eyes_available <<- "red_eyes" %in% question_names
+  unresponsive_available <<- "unresponsive" %in% question_names
+  yellow_eyes_available <<- "yellow_eyes" %in% question_names
+  yellow_skin_available <<- "yellow_skin" %in% question_names
+  pale_available <<- "pale" %in% question_names
+  hair_red_yellow_available <<- "hair_red_yellow" %in% question_names
+  tb_available <<- "tb" %in% question_names
+  times_diarrhea_available <<- "times_diarrhea" %in% question_names
+  number_stools_per_day_available <<- "number_stools_per_day" %in% question_names
+  times_passed_stool_available <<- "times_passed_stool" %in% question_names
+  sunken_eye_available <<- "sunken_eye" %in% question_names
+  sunken_fontanelle_available <<- "sunken_fontanelle" %in% question_names
+  flaring_nostrils_available <<- "flaring_nostrils" %in% question_names
 
   if( format %in% supported_formats ){
     causes <- vector(mode = "character")
     for (i in 1:nrow(babel_data)) {
-      causes[i] <- cod(babel_data[i,], 
-                       format,
-                       fever_available,
-                       cough_available,
-                       stiff_neck_available,
-                       bulging_fontanelle_available,
-                       diarrhea_available,
-                       swell_feet_available,
-                       swell_leg_available,
-                       swell_armpits_available,
-                       lumps_armpit_available,
-                       rash_mouth_available,
-                       bloody_stool_available,
-                       thin_available,
-                       protruding_abdomen_available,
-                       fast_breathing_available,
-                       chest_indrawing_available,
-                       cough_severe_available, 
-                       cough_vomit_available,
-                       difficulty_breathing_available,
-                       days_difficulty_breathing_available,
-                       noisy_breathing_available,
-                       fever_continue_available,
-                       fever_pattern_available,
-                       fever_severe_available,
-                       fever_severity_available,
-                       convulsions_available,
-                       unconscious_available,
-                       skin_black_available,
-                       place_rash_available,
-                       rash_body_available,
-                       rash_trunk_available,
-                       measles_rash_available,
-                       rash_face_available,
-                       rash_look_available,
-                       red_eyes_available,
-                       unresponsive_available,
-                       yellow_eyes_available,
-                       yellow_skin_available,
-                       pale_available,
-                       hair_red_yellow_available,
-                       tb_available,
-                       times_diarrhea_available,
-                       number_stools_per_day_available,
-                       times_passed_stool_available,
-                       sunken_eye_available,
-                       sunken_fontanelle_available)
+      causes[i] <- cod( babel_data[i,], format )
     }
     return(causes)
   } else{
@@ -157,61 +112,15 @@ get_causes <- function(babel_data, format) {
 #' @param responses : a data.frame of VA responses for one person (one row from a larger VA dataset)
 #' @return cod : the cause of death determined by the hierarchical expert algorithm 
 #' 
-cod <- function(responses, 
-                format, 
-                fever_available,
-                cough_available,
-                stiff_neck_available,
-                bulging_fontanelle_available,
-                diarrhea_available,
-                swell_feet_available,
-                swell_leg_available,
-                swell_armpits_available,
-                lumps_armpit_available,
-                rash_mouth_available,
-                bloody_stool_available,
-                thin_available,
-                protruding_abdomen_available,
-                fast_breathing_available,
-                chest_indrawing_available,
-                cough_severe_available, 
-                cough_vomit_available,
-                difficulty_breathing_available,
-                days_difficulty_breathing_available,
-                noisy_breathing_available,
-                fever_continue_available,
-                fever_pattern_available,
-                fever_severe_available,
-                fever_severity_available,
-                convulsions_available,
-                unconscious_available,
-                skin_black_available,
-                place_rash_available,
-                rash_body_available,
-                rash_trunk_available,
-                measles_rash_available,
-                rash_face_available,
-                rash_look_available,
-                red_eyes_available,
-                unresponsive_available,
-                yellow_eyes_available,
-                yellow_skin_available,
-                pale_available,
-                hair_red_yellow_available,
-                tb_available,
-                times_diarrhea_available,
-                number_stools_per_day_available,
-                times_passed_stool_available,
-                sunken_eye_available,
-                sunken_fontanelle_available) {
+cod <- function(responses, format){
   
-  # calculate age in DAYS from dates of birth, death (more reliable than age provided in dataset)
+  # calculate age in DAYS from dates of birth, death (more reliable than age provided in dataset (?) )
   age <- age_in_days(responses, format) 
   
-  if( is.na(age) | (age < 29 ) ){
-    # apply neonatal algorithm instead!
-    return("N/A")
-  }
+  # if( is.na(age) | (age < 29 ) ){
+  #   # apply neonatal algorithm instead!
+  #   return("N/A")
+  # }
   
   # durations of decedent's various conditions in DAYS
   days_fever <- fever_duration(responses, format) 
@@ -219,51 +128,52 @@ cod <- function(responses,
   days_cough <- cough_duration(responses, format) 
   days_diarrhea <- diarrhea_duration(responses, format) 
   days_fast_breathing <- fast_breathing_duration(responses, format) 
-  days_difficulty_breathing <- difficulty_breathing_duration(responses, days_difficulty_breathing_available) 
+  days_difficulty_breathing <- difficulty_breathing_duration( responses ) 
   
   # peak stool count
-  number_stools <- stool_count( responses, times_diarrhea_available, number_stools_per_day_available, times_passed_stool_available )
+  number_stools <- stool_count( responses )
   
   # binaries for decedent's conditions 
-  fever <- fever_p(responses, fever_available)
-  cough <- cough_p(responses, cough_available)
-  stiff_neck <- stiff_neck_p(responses, stiff_neck_available)
-  bulging_fontanelle <- bulging_fontanelle_p(responses, bulging_fontanelle_available)
-  diarrhea <- diarrhea_p(responses, diarrhea_available)
-  thin_limbs <- thin_p(responses, thin_available)
-  swollen_legs_feet <- swollen_legs_feet_p(responses, swell_feet_available, swell_leg_available)
-  protruding_abdomen <- protruding_abdomen_p(responses, protruding_abdomen_available)
-  fast_breathing <- fast_breathing_p(responses, fast_breathing_available)
-  chest_indrawing <- chest_indrawing_p(responses, chest_indrawing_available)
-  armpits <- armpits_p(responses, swell_armpits_available, lumps_armpit_available)
-  rash_mouth <- rash_mouth_p(responses, rash_mouth_available)
-  bloody_stool <- bloody_stool_p(responses, bloody_stool_available)
-  cough_severe <- cough_severe_p(responses, cough_severe_available)
-  cough_vomit <- cough_vomit_p(responses, cough_vomit_available)
-  difficulty_breathing <- difficulty_breathing_p(responses, difficulty_breathing_available)
+  fever <- fever_p( responses )
+  cough <- cough_p( responses )
+  stiff_neck <- stiff_neck_p( responses )
+  bulging_fontanelle <- bulging_fontanelle_p( responses )
+  diarrhea <- diarrhea_p( responses )
+  thin_limbs <- thin_p( responses )
+  swollen_legs_feet <- swollen_legs_feet_p( responses )
+  protruding_abdomen <- protruding_abdomen_p( responses )
+  fast_breathing <- fast_breathing_p( responses )
+  chest_indrawing <- chest_indrawing_p( responses )
+  armpits <- armpits_p( responses )
+  rash_mouth <- rash_mouth_p( responses )
+  bloody_stool <- bloody_stool_p( responses )
+  cough_severe <- cough_severe_p( responses )
+  cough_vomit <- cough_vomit_p( responses )
+  difficulty_breathing <- difficulty_breathing_p( responses )
   # noisy_breathing a.k.a. grunting
-  noisy_breathing <- noisy_breathing_p(responses, noisy_breathing_available)
-  fever_continue <- fever_continue_p(responses, fever_continue_available)
-  fever_on_off <- fever_on_off_p( responses, fever_continue_available, fever_pattern_available)
-  fever_severe <- fever_severe_p( responses, fever_severe_available, fever_severity_available )
-  convulsions <- convulsions_p( responses, convulsions_available )
-  unconscious <- unconscious_p( responses, unconscious_available )
-  skin_black <- skin_black_p(responses, skin_black_available)
+  noisy_breathing <- noisy_breathing_p( responses )
+  fever_continue <- fever_continue_p( responses )
+  fever_on_off <- fever_on_off_p( responses )
+  fever_severe <- fever_severe_p( responses )
+  convulsions <- convulsions_p( responses )
+  unconscious <- unconscious_p( responses )
+  skin_black <- skin_black_p( responses )
   bled_anywhere <- bled_anywhere_p( responses )
-  rash_trunk <- rash_trunk_p( responses, place_rash_available, rash_body_available, rash_trunk_available )
-  measles_rash <- measles_rash_p( responses, measles_rash_available, rash_body_available, rash_face_available, rash_look_available )
-  red_eyes <- red_eyes_p( responses, red_eyes_available )
-  unresponsive <- unresponsive_p( responses, unresponsive_available )
-  jaundice <- jaundice_p( responses, yellow_eyes_available, yellow_skin_available )
-  pale <- pale_p( responses, pale_available )
-  hair_change <- hair_change_p( responses, hair_red_yellow_available )
-  tb <- tb_p( responses, tb_available )
-  sunken_eye <- sunken_eye_p( responses, sunken_eye_available )
-  sunken_fontanelle <- sunken_fontanelle_p( responses, sunken_fontanelle_available)
+  rash_trunk <- rash_trunk_p( responses )
+  measles_rash <- measles_rash_p( responses )
+  red_eyes <- red_eyes_p( responses )
+  unresponsive <- unresponsive_p( responses )
+  jaundice <- jaundice_p( responses )
+  pale <- pale_p( responses )
+  hair_change <- hair_change_p( responses )
+  tb <- tb_p( responses )
+  sunken_eye <- sunken_eye_p( responses )
+  sunken_fontanelle <- sunken_fontanelle_p( responses )
+  flaring_nostrils <- flaring_nostrils_p( responses )
   
   # now check specific causes of death...
   
-  if( injury(responses) ){
+  if( injury( responses ) ){
     return("Injury")
   }
   
@@ -283,20 +193,19 @@ cod <- function(responses,
     return("AIDS")
   }
   
-  if( diarrhea(diarrhea, days_diarrhea, stool_count, sunken_eye, sunken_fontanelle) ){
+  if( diarrhea(diarrhea, days_diarrhea, number_stools, sunken_eye, sunken_fontanelle) ){
     return("Diarrhea")
   }
   
-  if( ari() ){
+  if( ari(days_cough, difficulty_breathing, noisy_breathing, chest_indrawing, flaring_nostrils) ){
     return("Acute Respiratory Infection")
   }
   
-  if(possible_pneumonia(cough, difficulty_breathing, fast_breathing, chest_indrawing, noisy_breathing, 
-                        cough_severe, cough_vomit, fever, convulsions, unconscious )){
+  if( possible_pneumonia(cough, difficulty_breathing, chest_indrawing, fever, convulsions) ){
     return("Possible pneumonia")
   }
   
-  if(possible_diarrhea(diarrhea, fever, convulsions, unconscious, bloody_stool)){
+  if( possible_diarrhea(diarrhea, difficulty_breathing, chest_indrawing, fever, convulsions) ){
     return("Possible diarrhea")
   }
   
@@ -501,7 +410,7 @@ fast_breathing_duration <- function(responses, format) {
   }
 }
 
-difficulty_breathing_duration <- function( responses, days_difficulty_breathing_available ){
+difficulty_breathing_duration <- function( responses ){
   if( days_difficulty_breathing_available ){
     if( !is.na(responses$days_difficulty_breathing) & !is.na(as.numeric(responses$days_difficulty_breathing)) ){
       return( as.numeric(responses$days_difficulty_breathing) )
@@ -515,7 +424,7 @@ difficulty_breathing_duration <- function( responses, days_difficulty_breathing_
 
 # Stool count -----
 
-stool_count <- function( responses, times_diarrhea_available, number_stools_per_day_available, times_passed_stool_available ){
+stool_count <- function( responses ){
   if( times_diarrhea_available ){
     if( !is.na(responses$times_diarrhea) & !is.na(as.numeric(responses$times_diarrhea)) ){
       return( as.numeric(responses$times_diarrhea) )
@@ -552,7 +461,7 @@ age_in_days <- function( responses, format ){
 
 # Binaries for conditions -----
 
-fever_p <- function(responses, fever_available){
+fever_p <- function(responses){
   if( fever_available ){
     if( !is.na( responses$fever ) & (responses$fever=="yes")){
       return(TRUE)
@@ -564,7 +473,7 @@ fever_p <- function(responses, fever_available){
   }
 }
 
-cough_p <- function(responses, cough_available){
+cough_p <- function(responses){
   if( cough_available ){
     if( !is.na( responses$cough ) & (responses$cough=="yes")){
       return(TRUE)
@@ -576,7 +485,7 @@ cough_p <- function(responses, cough_available){
   }
 }
 
-stiff_neck_p <- function(responses, stiff_neck_available){
+stiff_neck_p <- function(responses){
   if( stiff_neck_available ){
     if( !is.na( responses$stiff_neck ) & (responses$stiff_neck=="yes")){
       return(TRUE)
@@ -588,7 +497,7 @@ stiff_neck_p <- function(responses, stiff_neck_available){
   }
 }
 
-bulging_fontanelle_p <- function(responses, bulging_fontanelle_available){
+bulging_fontanelle_p <- function(responses){
   if( bulging_fontanelle_available ){
     if( !is.na( responses$bulging_fontanelle ) & (responses$bulging_fontanelle=="yes")){
       return(TRUE)
@@ -600,7 +509,7 @@ bulging_fontanelle_p <- function(responses, bulging_fontanelle_available){
   }
 }
 
-diarrhea_p <- function(responses, diarrhea_available){
+diarrhea_p <- function(responses){
   if( diarrhea_available ){
     if( !is.na( responses$diarrhea ) & (responses$diarrhea=="yes")){
       return(TRUE)
@@ -612,7 +521,7 @@ diarrhea_p <- function(responses, diarrhea_available){
   }
 }
 
-thin_p <- function(responses, thin_available){
+thin_p <- function(responses){
   if( thin_available ){
     if( !is.na( responses$thin ) & (responses$thin=="yes")){
       return(TRUE)
@@ -624,7 +533,7 @@ thin_p <- function(responses, thin_available){
   }
 }
 
-swollen_legs_feet_p <- function(responses, swell_feet_available, swell_leg_available){
+swollen_legs_feet_p <- function(responses){
   if( swell_leg_available & swell_feet_available ){
     if( (!is.na(responses$swell_feet) & (responses$swell_feet=="yes")) | 
         (!is.na(responses$swell_leg) & (responses$swell_leg=="yes")) ){
@@ -649,7 +558,7 @@ swollen_legs_feet_p <- function(responses, swell_feet_available, swell_leg_avail
   }
 }
 
-protruding_abdomen_p <- function(responses, protruding_abdomen_available){
+protruding_abdomen_p <- function(responses){
   if( protruding_abdomen_available ){
     if( !is.na( responses$protruding_abdomen ) & (responses$protruding_abdomen=="yes")){
       return(TRUE)
@@ -661,7 +570,7 @@ protruding_abdomen_p <- function(responses, protruding_abdomen_available){
   }
 }
 
-fast_breathing_p <- function(responses, fast_breathing_available){
+fast_breathing_p <- function(responses){
   if( fast_breathing_available ){
     if( !is.na( responses$fast_breathing ) & (responses$fast_breathing=="yes")){
       return(TRUE)
@@ -673,7 +582,7 @@ fast_breathing_p <- function(responses, fast_breathing_available){
   }
 }
 
-chest_indrawing_p <- function(responses, chest_indrawing_available){
+chest_indrawing_p <- function(responses){
   if( chest_indrawing_available ){
     if( !is.na( responses$chest_pull_in ) & (responses$chest_pull_in=="yes")){
       return(TRUE)
@@ -685,7 +594,7 @@ chest_indrawing_p <- function(responses, chest_indrawing_available){
   }
 }
 
-armpits_p <- function(responses, swell_armpits_available, lumps_armpit_available){
+armpits_p <- function(responses){
   if( swell_armpits_available ){
     if( !is.na( responses$swell_armpits ) & (responses$swell_armpits=="yes")){
       return(TRUE)
@@ -703,7 +612,7 @@ armpits_p <- function(responses, swell_armpits_available, lumps_armpit_available
   }
 }
 
-rash_mouth_p <- function(responses, rash_mouth_available){
+rash_mouth_p <- function(responses){
   if( rash_mouth_available ){
     if( !is.na( responses$rash_mouth ) & (responses$rash_mouth=="yes")){
       return(TRUE)
@@ -715,7 +624,7 @@ rash_mouth_p <- function(responses, rash_mouth_available){
   }
 }
 
-bloody_stool_p <- function(responses, bloody_stool_available){
+bloody_stool_p <- function(responses){
   if( bloody_stool_available ){
     if( !is.na( responses$bloody_stool ) & (responses$bloody_stool=="yes")){
       return(TRUE)
@@ -727,7 +636,7 @@ bloody_stool_p <- function(responses, bloody_stool_available){
   }
 }
 
-cough_severe_p <- function(responses, cough_severe_available ){
+cough_severe_p <- function(responses ){
   if( cough_severe_available ){
     if( !is.na(responses$cough_severe) & (responses$cough_severe=="yes")){
       return(TRUE)
@@ -739,7 +648,7 @@ cough_severe_p <- function(responses, cough_severe_available ){
   }
 }
 
-cough_vomit_p <- function(responses, cough_vomit_available){
+cough_vomit_p <- function(responses){
   if( cough_vomit_available ){
     if( !is.na(responses$cough_vomit) & (responses$cough_vomit=="yes")){
       return(TRUE)
@@ -751,7 +660,7 @@ cough_vomit_p <- function(responses, cough_vomit_available){
   }
 }
 
-difficulty_breathing_p <- function(responses, difficulty_breathing_available){
+difficulty_breathing_p <- function(responses){
   if( difficulty_breathing_available ){
     if( !is.na(responses$difficulty_breathing) & (responses$difficulty_breathing=="yes")){
       return(TRUE)
@@ -763,7 +672,7 @@ difficulty_breathing_p <- function(responses, difficulty_breathing_available){
   }
 }
 
-noisy_breathing_p <- function(responses, noisy_breathing_available){
+noisy_breathing_p <- function(responses){
   if( noisy_breathing_available ){
     if( !is.na(responses$noisy_breathing) & (responses$noisy_breathing=="yes")){
       return(TRUE)
@@ -775,7 +684,7 @@ noisy_breathing_p <- function(responses, noisy_breathing_available){
   }
 }
 
-fever_continue_p <- function(responses, fever_continue_available){
+fever_continue_p <- function(responses){
   if( fever_continue_available ){
     if( !is.na(responses$fever_continue) & (responses$fever_continue %in% c("yes", "continuous", "on_and_off", "on_off")) ){
       return(TRUE)
@@ -787,7 +696,7 @@ fever_continue_p <- function(responses, fever_continue_available){
   }
 }
 
-fever_on_off_p <- function( responses, fever_continue_available, fever_pattern_available){
+fever_on_off_p <- function( responses ){
   if( fever_pattern_available ){
     if( !is.na(responses$fever_pattern) & (responses$fever_pattern =="on_and_off")){
       return(TRUE)
@@ -805,7 +714,7 @@ fever_on_off_p <- function( responses, fever_continue_available, fever_pattern_a
   }
 }
 
-fever_severe_p <- function( responses, fever_severe_available, fever_severity_available ){
+fever_severe_p <- function( responses ){
   if( fever_severe_available ){
     if( !is.na(responses$fever_severe) & (responses$fever_severe %in% c("yes","severe")) ){
       return(TRUE)
@@ -823,7 +732,7 @@ fever_severe_p <- function( responses, fever_severe_available, fever_severity_av
   }
 }
 
-convulsions_p <- function( responses, convulsions_available ){
+convulsions_p <- function( responses ){
   if( convulsions_available ){
     if(!is.na(responses$convulsions) & (responses$convulsions == "yes")){
       return(TRUE)
@@ -835,7 +744,7 @@ convulsions_p <- function( responses, convulsions_available ){
   }
 }
 
-unconscious_p <- function( responses, unconscious_available ){
+unconscious_p <- function( responses ){
   if( unconscious_available ){
     if(!is.na(responses$unconscious) & (responses$unconscious == "yes")){
       return(TRUE)
@@ -847,7 +756,7 @@ unconscious_p <- function( responses, unconscious_available ){
   }
 }
 
-skin_black_p <- function(responses, skin_black_available){
+skin_black_p <- function(responses){
   if( skin_black_available ){
     if(!is.na(responses$skin_black) & (responses$skin_black == "yes")){
       return(TRUE)
@@ -861,7 +770,7 @@ skin_black_p <- function(responses, skin_black_available){
 
 bled_anywhere_p <- function( responses ){
   questions <- c("bloody_stool", "cough_blood", "bloody_vomit", "urine_blood", "bleed_nose_mouth_anus", "bleed" )
-  questions <- questions[ which( questions %in% names(responses)) ]
+  questions <- questions[ which( questions %in% names( responses )) ]
   answers <- responses %>% select( all_of(questions) ) 
   if(any(!is.na(answers))) {
     if (any(answers == "yes", na.rm = TRUE)) {
@@ -874,7 +783,7 @@ bled_anywhere_p <- function( responses ){
   }
 }
 
-rash_trunk_p <- function( responses, place_rash_available, rash_body_available, rash_trunk_available ){
+rash_trunk_p <- function( responses ){
   if( place_rash_available ){
     if( !is.na(responses$place_rash) & (responses$place_rash %in% c("trunk","everywhere")) ){
       return(TRUE)
@@ -898,7 +807,7 @@ rash_trunk_p <- function( responses, place_rash_available, rash_body_available, 
   }
 }
 
-measles_rash_p <- function( responses, measles_rash_available, rash_body_available, rash_face_available, rash_look_available ){
+measles_rash_p <- function( responses ){
   if( measles_rash_available ){
     if( !is.na(responses$measles_rash) & (responses$measles_rash == "yes") ){
       return(TRUE)
@@ -935,7 +844,7 @@ measles_rash_p <- function( responses, measles_rash_available, rash_body_availab
   }
 }
 
-red_eyes_p <- function( responses, red_eyes_available ){
+red_eyes_p <- function( responses ){
   if( red_eyes_available ){
     if(!is.na(responses$red_eyes) & (responses$red_eyes == "yes")){
       return(TRUE)
@@ -947,7 +856,7 @@ red_eyes_p <- function( responses, red_eyes_available ){
   }
 }
 
-unresponsive_p <- function( responses, unresponsive_available ){
+unresponsive_p <- function( responses ){
   if( unresponsive_available ){
     if(!is.na(responses$unresponsive) & (responses$unresponsive == "yes")){
       return(TRUE)
@@ -959,7 +868,7 @@ unresponsive_p <- function( responses, unresponsive_available ){
   }
 }
 
-jaundice_p <- function( responses, yellow_eyes_available, yellow_skin_available ){
+jaundice_p <- function( responses ){
   if( yellow_eyes_available & yellow_skin_available ){
     if(!is.na(responses$yellow_eyes) & (responses$yellow_eyes == "yes") &
        !is.na(responses$yellow_skin) & (responses$yellow_skin == "yes")){
@@ -984,7 +893,7 @@ jaundice_p <- function( responses, yellow_eyes_available, yellow_skin_available 
   }
 }
 
-pale_p <- function( responses, pale_available ){
+pale_p <- function( responses ){
   if( pale_available ){
     if(!is.na(responses$pale) & (responses$pale == "yes")){
       return(TRUE)
@@ -996,7 +905,7 @@ pale_p <- function( responses, pale_available ){
   }
 }
 
-hair_change_p <- function( responses, hair_red_yellow_available){
+hair_change_p <- function( responses ){
   if( hair_red_yellow_available ){
     if(!is.na(responses$hair_red_yellow) & (responses$hair_red_yellow == "yes")){
       return(TRUE)
@@ -1008,7 +917,7 @@ hair_change_p <- function( responses, hair_red_yellow_available){
   }
 }
 
-tb_p <- function( responses, tb_available ){
+tb_p <- function( responses ){
   if( tb_available ){
     if(!is.na(responses$tb) & (responses$tb == "yes")){
       return(TRUE)
@@ -1020,7 +929,7 @@ tb_p <- function( responses, tb_available ){
   }
 }
 
-sunken_eye_p <- function( responses, sunken_eye_available ){
+sunken_eye_p <- function( responses ){
   if( sunken_eye_available ){
     if(!is.na(responses$sunken_eye) & (responses$sunken_eye == "yes")){
       return(TRUE)
@@ -1032,9 +941,21 @@ sunken_eye_p <- function( responses, sunken_eye_available ){
   }
 }
 
-sunken_fontanelle_p <- function( responses, sunken_fontanelle_available){
+sunken_fontanelle_p <- function( responses ){
   if( sunken_fontanelle_available ){
     if(!is.na(responses$sunken_fontanelle) & (responses$sunken_fontanelle == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
+flaring_nostrils_p <- function(responses ){
+  if( flaring_nostrils_available ){
+    if(!is.na(responses$flaring_nostrils) & (responses$flaring_nostrils == "yes")){
       return(TRUE)
     } else{
       return(FALSE)
@@ -1049,7 +970,7 @@ sunken_fontanelle_p <- function( responses, sunken_fontanelle_available){
 injury <- function( responses ){
   questions <- c("injury_accident", "road_accident", "venomous_animal", "animal", "burn",
                  "drown", "injury_fall", "other_injury", "poisoning", "assault")
-  questions <- questions[ which( questions %in% names(responses)) ]
+  questions <- questions[ which( questions %in% names( responses )) ]
   answers <- responses %>% select( all_of(questions) ) 
   if(any(!is.na(answers))) {
     if (any(answers == "yes", na.rm = TRUE)) {
@@ -1089,29 +1010,27 @@ aids <- function( jaundice, fever, days_diarrhea, days_fever, pale, hair_change,
 
 # Diarrhea -----
 
-diarrhea <- function( diarrhea, days_diarrhea, stool_count, sunken_eye, sunken_fontanelle ){
-  return( (diarrhea & (days_diarrhea < 14) & (stool_count >= 6) & (sunken_eye & sunken_fontanelle)) | 
+diarrhea <- function( diarrhea, days_diarrhea, number_stools, sunken_eye, sunken_fontanelle ){
+  return( (diarrhea & (days_diarrhea < 14) & (number_stools >= 6) & (sunken_eye & sunken_fontanelle)) | 
             (diarrhea & (days_diarrhea >= 14)) )
 }
 
 # Acute Respiratory Infection -----
 
-ari <- function( ){
-  return(FALSE)
+ari <- function( days_cough, difficulty_breathing, noisy_breathing, chest_indrawing, flaring_nostrils ){
+  return( ((days_cough >= 3) | difficulty_breathing ) & ( noisy_breathing + chest_indrawing + flaring_nostrils >= 2 ) )
 }
 
 # Possible pneumonia -----
 
-possible_pneumonia <- function( cough, difficulty_breathing, fast_breathing, chest_indrawing, noisy_breathing, 
-                                cough_severe, cough_vomit, fever, convulsions, unconscious ){
-  return( ( (cough | difficulty_breathing) | ( fast_breathing & (chest_indrawing | noisy_breathing) ) ) & 
-            ( cough_severe | cough_vomit | fast_breathing | chest_indrawing | noisy_breathing | fever | convulsions | unconscious ) )
+possible_pneumonia <- function( cough, difficulty_breathing, chest_indrawing, fever, convulsions ){
+  return( ( difficulty_breathing + chest_indrawing + convulsions + fever >= 2 ) & (cough | difficulty_breathing) )
 }
 
 # Possible diarrhea -----
 
-possible_diarrhea <- function( diarrhea, fever, convulsions, unconscious, bloody_stool ){
-  return( diarrhea & (fever | convulsions | unconscious) & !bloody_stool )
+possible_diarrhea <- function( diarrhea, difficulty_breathing, chest_indrawing, fever, convulsions ){
+  return( ( difficulty_breathing + chest_indrawing + convulsions + fever >= 2 ) & diarrhea )
 }
 
 # for testing :

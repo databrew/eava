@@ -12,7 +12,8 @@ library(tidyverse)
 library(flextable)
 library(knitr)
 library(kableExtra)
-source("kalter_child.R")
+# source("kalter_child.R")
+source("liu_child.R")
 ```
 
 # EAVA algorithm 
@@ -35,8 +36,16 @@ causes %>%
   set_caption("CHAMPS_Verbal_Autopsy_Form_results.csv") %>% 
   autofit()
 
-regulartable( cbind( death_dates(df, format="champs2"), interview_dates(df, format="champs2") ) ) %>% 
-  autofit()
+# regulartable( cbind( death_dates(df, format="champs2"), interview_dates(df, format="champs2") ) ) %>% 
+#   autofit()
+
+ages <- get_ages(df, "champs2") 
+summary(ages)
+summary( ages - df$age_days )
+df$date_death_deceased
+df$date_birth_deceased
+# ALL GOOD!
+
 ```
 
 ```{r}
@@ -51,8 +60,16 @@ causes %>%
   set_caption("CHAMPS_Verbal_Autopsy_Form_v2_04_1_results.csv") %>% 
   autofit()
 
-regulartable( cbind( death_dates(df, format="champs2"), interview_dates(df, format="champs2") ) ) %>% 
-  autofit()
+# regulartable( cbind( death_dates(df, format="champs2"), interview_dates(df, format="champs2") ) ) %>% 
+#   autofit()
+
+ages <- get_ages(df, "champs2") 
+summary(ages)
+summary( ages - df$age_days )
+df$date_death_deceased
+df$date_birth_deceased
+# ALL GOOD!
+
 ```
 
 ```{r}
@@ -67,8 +84,17 @@ causes %>%
   set_caption("CHAMPS_Verbal_Autopsy_Form_v2_04_results.csv") %>% 
   autofit()
 
-regulartable( cbind( death_dates(df, format="champs2"), interview_dates(df, format="champs2") ) ) %>% 
-  autofit()
+# regulartable( cbind( death_dates(df, format="champs2"), interview_dates(df, format="champs2") ) ) %>% 
+#   autofit()
+
+ages <- get_ages(df, "champs2") 
+summary(ages)
+summary( ages - df$age_days )
+summary( ages - df$age)
+df$date_death_deceased
+df$date_birth_deceased
+# NOT GOOD! ages bad but df$age_days seems fine
+
 ```
 
 ```{r}
@@ -83,8 +109,17 @@ causes %>%
   set_caption("VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018.csv") %>% 
   autofit()
 
-regulartable( cbind( death_dates(df, format="champs1"), interview_dates(df, format="champs1") ) ) %>% 
-  autofit()
+# regulartable( cbind( death_dates(df, format="champs1"), interview_dates(df, format="champs1") ) ) %>% 
+#   autofit()
+
+ages <- get_ages(df, "champs1") 
+summary(ages)
+summary( ages - df$age_days )
+summary( ages - df$age)
+df$date_death_deceased
+df$date_birth_deceased
+# NOT GOOD! ages bad and df has neither age_days nor age variable
+
 ```
 
 # Results for Gambia data
@@ -103,8 +138,18 @@ causes %>%
   set_caption("VA_Child_WHO2016.csv") %>% 
   autofit()
 
-regulartable( cbind( death_dates(df, format="c16"), interview_dates(df, format="c16") ) ) %>% 
-  autofit()
+# regulartable( cbind( death_dates(df, format="c16"), interview_dates(df, format="c16") ) ) %>% 
+#   autofit()
+
+ages <- get_ages(df, "c16") 
+summary(ages)
+summary( ages - df$age_days )
+summary( ages - df$age)
+df$date_death_deceased
+df$date_birth_deceased
+# ages seems fine, but df has no age_days variable
+# and df$age is totally jacked up
+
 ```
 
 ```{r}
@@ -119,8 +164,17 @@ causes %>%
   set_caption("VA_ChildForm_WHO2012.csv") %>% 
   autofit()
 
-regulartable( cbind( death_dates(df, format="c12_16"), interview_dates(df, format="c12_16") ) ) %>% 
-  autofit()
+# regulartable( cbind( death_dates(df, format="c12_16"), interview_dates(df, format="c12_16") ) ) %>% 
+#   autofit()
+
+ages <- get_ages(df, "c12_16") 
+summary(ages)
+summary( ages - df$age_days )
+summary( ages - df$age)
+df$date_death_deceased
+df$date_birth_deceased
+
+# someone born in 1957?? see ages[65], df$date_birth_deceased[65], df$date_death_deceased[65]
 ```
 
 ## BS HDSS 
@@ -137,6 +191,14 @@ causes %>%
   set_caption("VA_Child_Indepth_2008-2012_clean duration.csv") %>% 
   autofit()
 
+ages <- get_ages(df, "c08_12") 
+summary(ages)
+summary( ages - df$age_days )
+summary( ages - df$age)
+df$date_death_deceased
+df$date_birth_deceased
+# NOT GOOD! no date_birth_deceased variable; many many NAs in date_death_deceased
+
 ```
 
 
@@ -151,6 +213,14 @@ causes %>%
   theme_zebra() %>% 
   set_caption("VA_Child_Indepth_2008-2012.csv") %>% 
   autofit()
+
+ages <- get_ages(df, "c08_12") 
+summary(ages)
+summary( ages - df$age_days )
+summary( ages - df$age)
+df$date_death_deceased
+df$date_birth_deceased
+# NOT GOOD! no date_birth_deceased variable; many many NAs in date_death_deceased
 
 ```
 
@@ -167,8 +237,17 @@ causes %>%
   set_caption("VA_Child_WHO2012-mid 2016.csv") %>% 
   autofit()
 
-regulartable( cbind( death_dates(df, format="c12_16"), interview_dates(df, format="c12_16") ) ) %>% 
-  autofit()
+# regulartable( cbind( death_dates(df, format="c12_16"), interview_dates(df, format="c12_16") ) ) %>% 
+#   autofit()
+
+ages <- get_ages(df, "c12_16") 
+summary(ages)
+summary( ages - df$age_days )
+summary( ages - df$age)
+df$date_death_deceased
+df$date_birth_deceased
+# ages seems okay; no df$age_days or df$age
+
 ```
 
 
@@ -184,7 +263,16 @@ causes %>%
   set_caption("VA_Child_WHO2016.csv") %>% 
   autofit()
 
-regulartable( cbind( death_dates(df, format="c16"), interview_dates(df, format="c16") ) ) %>% 
-  autofit()
+# regulartable( cbind( death_dates(df, format="c16"), interview_dates(df, format="c16") ) ) %>% 
+#   autofit()
+
+ages <- get_ages(df, "c16") 
+summary(ages)
+summary( ages - df$age_days )
+summary( ages - df$age)
+df$date_death_deceased
+df$date_birth_deceased
+# NOT GOOD! many negative ages... quite a few typos in dates
+
 ```
 
