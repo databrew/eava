@@ -87,6 +87,11 @@ get_causes <- function(babel_data, format) {
   pale_available <- "pale" %in% question_names
   hair_red_yellow_available <- "hair_red_yellow" %in% question_names
   tb_available <- "tb" %in% question_names
+  times_diarrhea_available <- "times_diarrhea" %in% question_names
+  number_stools_per_day_available <- "number_stools_per_day" %in% question_names
+  times_passed_stool_available <- "times_passed_stool" %in% question_names
+  sunken_eye_available <- "sunken_eye" %in% question_names
+  sunken_fontanelle_available <- "sunken_fontanelle" %in% question_names
 
   if( format %in% supported_formats ){
     causes <- vector(mode = "character")
@@ -132,7 +137,12 @@ get_causes <- function(babel_data, format) {
                        yellow_skin_available,
                        pale_available,
                        hair_red_yellow_available,
-                       tb_available)
+                       tb_available,
+                       times_diarrhea_available,
+                       number_stools_per_day_available,
+                       times_passed_stool_available,
+                       sunken_eye_available,
+                       sunken_fontanelle_available)
     }
     return(causes)
   } else{
@@ -188,7 +198,20 @@ cod <- function(responses,
                 yellow_skin_available,
                 pale_available,
                 hair_red_yellow_available,
-                tb_available) {
+                tb_available,
+                times_diarrhea_available,
+                number_stools_per_day_available,
+                times_passed_stool_available,
+                sunken_eye_available,
+                sunken_fontanelle_available) {
+  
+  # calculate age in DAYS from dates of birth, death (more reliable than age provided in dataset)
+  age <- age_in_days(responses, format) 
+  
+  if( is.na(age) | (age < 29 ) ){
+    # apply neonatal algorithm instead!
+    return("N/A")
+  }
   
   # durations of decedent's various conditions in DAYS
   days_fever <- fever_duration(responses, format) 
@@ -198,13 +221,8 @@ cod <- function(responses,
   days_fast_breathing <- fast_breathing_duration(responses, format) 
   days_difficulty_breathing <- difficulty_breathing_duration(responses, days_difficulty_breathing_available) 
   
-  # calculate age in DAYS from dates of birth, death (more reliable than age provided in dataset)
-  age <- age_in_days(responses, format) 
-  
-  if( is.na(age) | (age < 29 ) ){
-    # apply neonatal algorithm instead!
-    return("N/A")
-  }
+  # peak stool count
+  number_stools <- stool_count( responses, times_diarrhea_available, number_stools_per_day_available, times_passed_stool_available )
   
   # binaries for decedent's conditions 
   fever <- fever_p(responses, fever_available)
@@ -235,11 +253,13 @@ cod <- function(responses,
   rash_trunk <- rash_trunk_p( responses, place_rash_available, rash_body_available, rash_trunk_available )
   measles_rash <- measles_rash_p( responses, measles_rash_available, rash_body_available, rash_face_available, rash_look_available )
   red_eyes <- red_eyes_p( responses, red_eyes_available )
-  unresponsive <- unresponsive_p( responses, unresponsive_available)
-  jaundice <- jaundice_p( responses, yellow_eyes_available, yellow_skin_available)
+  unresponsive <- unresponsive_p( responses, unresponsive_available )
+  jaundice <- jaundice_p( responses, yellow_eyes_available, yellow_skin_available )
   pale <- pale_p( responses, pale_available )
-  hair_change <- hair_change_p( responses, hair_red_yellow_available)
+  hair_change <- hair_change_p( responses, hair_red_yellow_available )
   tb <- tb_p( responses, tb_available )
+  sunken_eye <- sunken_eye_p( responses, sunken_eye_available )
+  sunken_fontanelle <- sunken_fontanelle_p( responses, sunken_fontanelle_available)
   
   # now check specific causes of death...
   
@@ -263,7 +283,7 @@ cod <- function(responses,
     return("AIDS")
   }
   
-  if( diarrhea(days_diarrhea, bloody_stool) ){
+  if( diarrhea(diarrhea, days_diarrhea, stool_count, sunken_eye, sunken_fontanelle) ){
     return("Diarrhea")
   }
   
@@ -485,6 +505,32 @@ difficulty_breathing_duration <- function( responses, days_difficulty_breathing_
   if( days_difficulty_breathing_available ){
     if( !is.na(responses$days_difficulty_breathing) & !is.na(as.numeric(responses$days_difficulty_breathing)) ){
       return( as.numeric(responses$days_difficulty_breathing) )
+    } else{
+      return(0)
+    }
+  } else{
+    return(0)
+  }
+}
+
+# Stool count -----
+
+stool_count <- function( responses, times_diarrhea_available, number_stools_per_day_available, times_passed_stool_available ){
+  if( times_diarrhea_available ){
+    if( !is.na(responses$times_diarrhea) & !is.na(as.numeric(responses$times_diarrhea)) ){
+      return( as.numeric(responses$times_diarrhea) )
+    } else{
+      return(0)
+    }
+  } else if( number_stools_per_day_available ){
+    if( !is.na(responses$number_stools_per_day) & !is.na(as.numeric(responses$number_stools_per_day)) ){
+      return( as.numeric(responses$number_stools_per_day) )
+    } else{
+      return(0)
+    }
+  } else if( times_passed_stool_available ){
+    if( !is.na(responses$times_passed_stool) & !is.na(as.numeric(responses$times_passed_stool)) ){
+      return( as.numeric(responses$times_passed_stool) )
     } else{
       return(0)
     }
@@ -974,6 +1020,30 @@ tb_p <- function( responses, tb_available ){
   }
 }
 
+sunken_eye_p <- function( responses, sunken_eye_available ){
+  if( sunken_eye_available ){
+    if(!is.na(responses$sunken_eye) & (responses$sunken_eye == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
+sunken_fontanelle_p <- function( responses, sunken_fontanelle_available){
+  if( sunken_fontanelle_available ){
+    if(!is.na(responses$sunken_fontanelle) & (responses$sunken_fontanelle == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
 # Injury -----
 
 injury <- function( responses ){
@@ -1019,8 +1089,9 @@ aids <- function( jaundice, fever, days_diarrhea, days_fever, pale, hair_change,
 
 # Diarrhea -----
 
-diarrhea <- function( days_diarrhea, bloody_stool ){
-  return( (days_diarrhea > 14) & !bloody_stool )
+diarrhea <- function( diarrhea, days_diarrhea, stool_count, sunken_eye, sunken_fontanelle ){
+  return( (diarrhea & (days_diarrhea < 14) & (stool_count >= 6) & (sunken_eye & sunken_fontanelle)) | 
+            (diarrhea & (days_diarrhea >= 14)) )
 }
 
 # Acute Respiratory Infection -----
