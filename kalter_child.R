@@ -79,9 +79,9 @@ get_causes <- function(babel_data, format) {
   rash_trunk_available <- "rash_trunk" %in% question_names
 
   if( format %in% supported_formats ){
-    causes <- vector(mode = "character")
+    causes <- list(mode = "character")
     for (i in 1:nrow(babel_data)) {
-      causes[i] <- cod(babel_data[i,], 
+      causes[[i]] <- cod(babel_data[i,], 
                        format,
                        fever_available,
                        cough_available,
@@ -160,6 +160,8 @@ cod <- function(responses,
                 rash_body_available,
                 rash_trunk_available) {
   
+  causes <- character()
+  
   # durations of decedent's various conditions in DAYS
   days_fever <- fever_duration(responses, format) 
   days_rash <- rash_duration(responses, format) 
@@ -173,7 +175,7 @@ cod <- function(responses,
   
   if( is.na(age) | (age < 29 ) ){
     # apply neonatal algorithm instead!
-    return("N/A")
+    return("Neonate")
   }
   
   # binaries for decedent's conditions 
@@ -207,78 +209,99 @@ cod <- function(responses,
   # now check specific causes of death...
   
   if( injury(responses) ){
-    return("Injury")
+    # return("Injury")
+    causes <- c( causes, "Injury" )
   }
   
   if( aids(armpits, rash_mouth, thin_limbs, protruding_abdomen, fast_breathing, 
            chest_indrawing, days_diarrhea, days_fever, days_rash) ){
-    return("AIDS")
+    # return("AIDS")
+    causes <- c( causes, "AIDS" )
   }
   
   if( underlying_malnutrition(thin_limbs, swollen_legs_feet) ){
-    return("Malnutrition (underlying)")
+    # return("Malnutrition (underlying)")
+    causes <- c( causes, "Malnutrition (underlying)" )
   }
   
   if( measles(age, days_rash, days_fever) ){
-    return("Measles")
+    # return("Measles")
+    causes <- c( causes, "Measles" )
   }
   
   if( meningitis(fever, stiff_neck, bulging_fontanelle) ){
-    return("Meningitis")
+    # return("Meningitis")
+    causes <- c( causes, "Meningitis" )
   }
   
   if( dysentery(days_diarrhea, bloody_stool) ){
-    return("Dysentery")
+    # return("Dysentery")
+    causes <- c( causes, "Dysentery" )
   }
   
   if( diarrhea(days_diarrhea, bloody_stool) ){
-    return("Diarrhea")
+    # return("Diarrhea")
+    causes <- c( causes, "Diarrhea" )
   }
   
   if( pertussis(days_cough, cough_severe_available, cough_severe, cough_vomit_available, cough_vomit) ){
-    return("Pertussis")
+    # return("Pertussis")
+    causes <- c( causes, "Pertussis" )
   }
   
   if( pneumonia(days_cough, days_difficulty_breathing, days_fast_breathing, chest_indrawing, noisy_breathing) ){
-    return("Pneumonia")
+    # return("Pneumonia")
+    causes <- c( causes, "Pneumonia" )
   }
   
   if(malaria(fever_continue, fever_on_off, fever_severe, stiff_neck, bulging_fontanelle, 
              difficulty_breathing, convulsions, unconscious)){
-    return("Malaria")
+    # return("Malaria")
+    causes <- c( causes, "Malaria" )
   }
   
   if(possible_dysentery(diarrhea, fever, convulsions, unconscious, bloody_stool)){
-    return("Possible dysentery")
+    # return("Possible dysentery")
+    causes <- c( causes, "Possible dysentery" )
   }
   
   if(possible_diarrhea(diarrhea, fever, convulsions, unconscious, bloody_stool)){
-    return("Possible diarrhea")
+    # return("Possible diarrhea")
+    causes <- c( causes, "Possible diarrhea" )
   }
   
   if(possible_pneumonia(cough, difficulty_breathing, fast_breathing, chest_indrawing, noisy_breathing, 
                         cough_severe, cough_vomit, fever, convulsions, unconscious )){
-    return("Possible pneumonia")
+    # return("Possible pneumonia")
+    causes <- c( causes, "Possible pneumonia" )
   }
   
   if(hemorrhagic_fever(fever, bled_anywhere, skin_black)){
-    return("Hemorrhagic fever")
+    # return("Hemorrhagic fever")
+    causes <- c( causes, "Hemorrhagic fever" )
   }
   
   if(other_infection(fever, rash_trunk, convulsions, unconscious)){
-    return("Other infection")
+    # return("Other infection")
+    causes <- c( causes, "Other infection" )
   }
   
   if(possible_malaria(fever)){
-    return("Possible malaria")
+    # return("Possible malaria")
+    causes <- c( causes, "Possible malaria" )
   }
   
   if(malnutrition(thin_limbs, swollen_legs_feet)){
-    return("Malnutrition")
+    # return("Malnutrition")
+    causes <- c( causes, "Malnutrition" )
   }
   
-  # reaching this point means that no specific cause has been determined 
-  return("Unspecified")
+  if( length( causes ) > 0){
+    return(causes)
+  } else{
+    return("Unspecified")
+  }
+  
 }
 
 # Durations -----

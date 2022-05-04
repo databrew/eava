@@ -46,7 +46,8 @@ interview_dates <- function( babel_data, format ){
 get_causes <- function(babel_data, format) {
   
   # check availability of certain indicators -- depends on format, not on responses for an individual decedent
-  question_names <<- names( babel_data )
+  question_names <- names( babel_data )
+  age_days_available <<- "age_days" %in% question_names
   fever_available <<- "fever" %in% question_names
   cough_available <<- "cough" %in% question_names
   stiff_neck_available <<- "stiff_neck" %in% question_names
@@ -95,9 +96,9 @@ get_causes <- function(babel_data, format) {
   flaring_nostrils_available <<- "flaring_nostrils" %in% question_names
 
   if( format %in% supported_formats ){
-    causes <- vector(mode = "character")
+    causes <- list(mode = "character")
     for (i in 1:nrow(babel_data)) {
-      causes[i] <- cod( babel_data[i,], format )
+      causes[[i]] <- cod( babel_data[i,], format )
     }
     return(causes)
   } else{
@@ -114,13 +115,23 @@ get_causes <- function(babel_data, format) {
 #' 
 cod <- function(responses, format){
   
-  # calculate age in DAYS from dates of birth, death (more reliable than age provided in dataset (?) )
-  age <- age_in_days(responses, format) 
+  causes <- character()
   
-  # if( is.na(age) | (age < 29 ) ){
-  #   # apply neonatal algorithm instead!
-  #   return("N/A")
-  # }
+  # calculate age in DAYS from dates of birth, death (more reliable than age provided in dataset (?) )
+  if( age_days_available ){
+    if( !is.na( responses$age_days) ){
+      age <- responses$age_days
+    } else{
+      age <- NA
+    }
+  } else{
+    age <- NA
+  } 
+  
+  if( is.na(age) | (age < 29 ) ){
+    # apply neonatal algorithm instead!
+    return("Neonate")
+  }
   
   # durations of decedent's various conditions in DAYS
   days_fever <- fever_duration(responses, format) 
@@ -174,43 +185,55 @@ cod <- function(responses, format){
   # now check specific causes of death...
   
   if( injury( responses ) ){
-    return("Injury")
+    # return("Injury")
+    causes <- c( causes, "Injury" )
   }
   
   if( measles(age, fever, measles_rash, cough, red_eyes ) ){
-    return("Measles")
+    # return("Measles")
+    causes <- c( causes, "Measles" )
   }
   
   if( meningitis(fever, convulsions, stiff_neck, bulging_fontanelle, unconscious) ){
-    return("Meningitis")
+    # return("Meningitis")
+    causes <- c( causes, "Meningitis" )
   }
   
   if( malaria(fever, difficulty_breathing, convulsions, unresponsive) ){
-    return("Malaria")
+    # return("Malaria")
+    causes <- c( causes, "Malaria" )
   }
   
   if( aids(jaundice, fever, days_diarrhea, days_fever, pale, hair_change, swollen_legs_feet, days_cough, days_difficulty_breathing, tb) ){
-    return("AIDS")
+    # return("AIDS")
+    causes <- c( causes, "AIDS" )
   }
   
   if( diarrhea(diarrhea, days_diarrhea, number_stools, sunken_eye, sunken_fontanelle) ){
-    return("Diarrhea")
+    # return("Diarrhea")
+    causes <- c( causes, "Diarrhea" )
   }
   
   if( ari(days_cough, difficulty_breathing, noisy_breathing, chest_indrawing, flaring_nostrils) ){
-    return("Acute Respiratory Infection")
+    # return("Acute Respiratory Infection")
+    causes <- c( causes, "Acute Respiratory Infection" )
   }
   
   if( possible_pneumonia(cough, difficulty_breathing, chest_indrawing, fever, convulsions) ){
-    return("Possible pneumonia")
+    # return("Possible pneumonia")
+    causes <- c( causes, "Possible pneumonia" )
   }
   
   if( possible_diarrhea(diarrhea, difficulty_breathing, chest_indrawing, fever, convulsions) ){
-    return("Possible diarrhea")
+    # return("Possible diarrhea")
+    causes <- c( causes, "Possible diarrhea" )
   }
   
-  # reaching this point means that no specific cause has been determined 
-  return("Unspecified")
+  if( length( causes ) > 0){
+    return(causes)
+  } else{
+    return("Unspecified")
+  }
   
 }
 
@@ -443,17 +466,6 @@ stool_count <- function( responses ){
     } else{
       return(0)
     }
-  } else{
-    return(0)
-  }
-}
-
-# Age -----
-
-age_in_days <- function( responses, format ){
-  # CHECK THE USE OF mdy HERE!!!
-  if( format != "c08_12"){
-    return( difftime( mdy(responses$date_death_deceased), mdy(responses$date_birth_deceased), units="days") )
   } else{
     return(0)
   }
@@ -1033,11 +1045,3 @@ possible_diarrhea <- function( diarrhea, difficulty_breathing, chest_indrawing, 
   return( ( difficulty_breathing + chest_indrawing + convulsions + fever >= 2 ) & diarrhea )
 }
 
-# for testing :
-get_ages <- function( babel_data, format ){
-  ages <- numeric()
-  for(i in 1:nrow(babel_data)){
-    ages[i] <- age_in_days(babel_data[i,], format)
-  }
-  return(ages)
-}

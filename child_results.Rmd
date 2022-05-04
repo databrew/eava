@@ -12,8 +12,8 @@ library(tidyverse)
 library(flextable)
 library(knitr)
 library(kableExtra)
-# source("kalter_child.R")
-source("liu_child.R")
+source("kalter_child.R")
+# source("liu_child.R")
 ```
 
 # EAVA algorithm 
@@ -27,8 +27,8 @@ Expert Algorithm for Verbal Autopsy (EAVA) based on
 ```{r}
 df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_results_babel.csv")
 causes <- get_causes(df, format="champs2")
-causes <- data.frame( Cause = causes )
-causes %>% 
+primary_causes <- data.frame( Cause = sapply(causes,"[[",1) )
+primary_causes %>% 
   group_by(Cause) %>% 
   tally %>% 
   regulartable() %>% 
@@ -38,13 +38,6 @@ causes %>%
 
 # regulartable( cbind( death_dates(df, format="champs2"), interview_dates(df, format="champs2") ) ) %>% 
 #   autofit()
-
-ages <- get_ages(df, "champs2") 
-summary(ages)
-summary( ages - df$age_days )
-df$date_death_deceased
-df$date_birth_deceased
-# ALL GOOD!
 
 ```
 
@@ -63,13 +56,6 @@ causes %>%
 # regulartable( cbind( death_dates(df, format="champs2"), interview_dates(df, format="champs2") ) ) %>% 
 #   autofit()
 
-ages <- get_ages(df, "champs2") 
-summary(ages)
-summary( ages - df$age_days )
-df$date_death_deceased
-df$date_birth_deceased
-# ALL GOOD!
-
 ```
 
 ```{r}
@@ -87,14 +73,6 @@ causes %>%
 # regulartable( cbind( death_dates(df, format="champs2"), interview_dates(df, format="champs2") ) ) %>% 
 #   autofit()
 
-ages <- get_ages(df, "champs2") 
-summary(ages)
-summary( ages - df$age_days )
-summary( ages - df$age)
-df$date_death_deceased
-df$date_birth_deceased
-# NOT GOOD! ages bad but df$age_days seems fine
-
 ```
 
 ```{r}
@@ -111,14 +89,6 @@ causes %>%
 
 # regulartable( cbind( death_dates(df, format="champs1"), interview_dates(df, format="champs1") ) ) %>% 
 #   autofit()
-
-ages <- get_ages(df, "champs1") 
-summary(ages)
-summary( ages - df$age_days )
-summary( ages - df$age)
-df$date_death_deceased
-df$date_birth_deceased
-# NOT GOOD! ages bad and df has neither age_days nor age variable
 
 ```
 
@@ -141,15 +111,6 @@ causes %>%
 # regulartable( cbind( death_dates(df, format="c16"), interview_dates(df, format="c16") ) ) %>% 
 #   autofit()
 
-ages <- get_ages(df, "c16") 
-summary(ages)
-summary( ages - df$age_days )
-summary( ages - df$age)
-df$date_death_deceased
-df$date_birth_deceased
-# ages seems fine, but df has no age_days variable
-# and df$age is totally jacked up
-
 ```
 
 ```{r}
@@ -167,14 +128,6 @@ causes %>%
 # regulartable( cbind( death_dates(df, format="c12_16"), interview_dates(df, format="c12_16") ) ) %>% 
 #   autofit()
 
-ages <- get_ages(df, "c12_16") 
-summary(ages)
-summary( ages - df$age_days )
-summary( ages - df$age)
-df$date_death_deceased
-df$date_birth_deceased
-
-# someone born in 1957?? see ages[65], df$date_birth_deceased[65], df$date_death_deceased[65]
 ```
 
 ## BS HDSS 
@@ -191,14 +144,6 @@ causes %>%
   set_caption("VA_Child_Indepth_2008-2012_clean duration.csv") %>% 
   autofit()
 
-ages <- get_ages(df, "c08_12") 
-summary(ages)
-summary( ages - df$age_days )
-summary( ages - df$age)
-df$date_death_deceased
-df$date_birth_deceased
-# NOT GOOD! no date_birth_deceased variable; many many NAs in date_death_deceased
-
 ```
 
 
@@ -213,14 +158,6 @@ causes %>%
   theme_zebra() %>% 
   set_caption("VA_Child_Indepth_2008-2012.csv") %>% 
   autofit()
-
-ages <- get_ages(df, "c08_12") 
-summary(ages)
-summary( ages - df$age_days )
-summary( ages - df$age)
-df$date_death_deceased
-df$date_birth_deceased
-# NOT GOOD! no date_birth_deceased variable; many many NAs in date_death_deceased
 
 ```
 
@@ -240,14 +177,6 @@ causes %>%
 # regulartable( cbind( death_dates(df, format="c12_16"), interview_dates(df, format="c12_16") ) ) %>% 
 #   autofit()
 
-ages <- get_ages(df, "c12_16") 
-summary(ages)
-summary( ages - df$age_days )
-summary( ages - df$age)
-df$date_death_deceased
-df$date_birth_deceased
-# ages seems okay; no df$age_days or df$age
-
 ```
 
 
@@ -265,14 +194,6 @@ causes %>%
 
 # regulartable( cbind( death_dates(df, format="c16"), interview_dates(df, format="c16") ) ) %>% 
 #   autofit()
-
-ages <- get_ages(df, "c16") 
-summary(ages)
-summary( ages - df$age_days )
-summary( ages - df$age)
-df$date_death_deceased
-df$date_birth_deceased
-# NOT GOOD! many negative ages... quite a few typos in dates
 
 ```
 
