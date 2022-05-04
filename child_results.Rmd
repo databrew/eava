@@ -22,15 +22,51 @@ Expert Algorithm for Verbal Autopsy (EAVA) based on
 
 > Kalter et al., [Direct estimates of national neonatal and child cause–specific mortality proportions in Niger by expert algorithm and physician–coded analysis of verbal autopsy interviews](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4416334/), J Glob Health. 2015 Jun; 5(1): 010415
 
+and
+
+> Liu et al., [Deriving causes of child mortality by re–analyzing national verbal autopsy data applying a standardized computer algorithm in Uganda, Rwanda and Ghana](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4467513/), J Glob Health. 2015 Jun; 5(1): 010414
+
+```{r}
+
+# causes is a list created by get_causes ; 
+# 1st entry is primary cause, others are possible comborbidities
+clean_causes <- function( causes ){
+  primary_causes <- sapply(causes,"[[",1) 
+  comorbidities <- character( length = length( primary_causes ) ) 
+  for( i in 1:length( causes ) ){
+    if( length(causes[[i]]) == 1 ){
+      comorbidities[i] <- ""
+    } else{
+      comorbidities[i] <- paste0( causes[[i]][-1], collapse=", " )
+    }
+  }
+  return( data.frame( Primary = primary_causes, Comorbidities = comorbidities) )
+}
+
+tabulate_causes <- function( cleaned_causes ){
+
+tallies <- cleaned_causes %>%
+  group_by( Primary ) %>%
+  tally( name="Count") 
+
+comorbid <-  cleaned_causes %>% 
+  group_by(Primary) %>% 
+  summarize( Comorbidities = paste0( unique( unlist( strsplit( paste0(Comorbidities, collapse = ", "), ", ", fixed=TRUE))), collapse = ", "))
+
+return( tallies %>% left_join( comorbid, by="Primary" ) %>% arrange( desc(Count) ))
+}
+
+```
+
 # Results for Mali data
 
 ```{r}
 df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_results_babel.csv")
 causes <- get_causes(df, format="champs2")
-primary_causes <- data.frame( Cause = sapply(causes,"[[",1) )
-primary_causes %>% 
-  group_by(Cause) %>% 
-  tally %>% 
+causes <- tabulate_causes( clean_causes( causes ) )
+
+causes %>%
+  rename( "Possible comorbidities" = Comorbidities) %>%
   regulartable() %>% 
   theme_zebra() %>% 
   set_caption("CHAMPS_Verbal_Autopsy_Form_results.csv") %>% 

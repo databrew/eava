@@ -47,6 +47,7 @@ get_causes <- function(babel_data, format) {
   
   # check availability of certain indicators -- depends on format, not on responses for an individual decedent
   question_names <- names( babel_data )
+  age_days_available <<- "age_days" %in% question_names
   fever_available <- "fever" %in% question_names
   cough_available <- "cough" %in% question_names
   stiff_neck_available <- "stiff_neck" %in% question_names
@@ -162,6 +163,22 @@ cod <- function(responses,
   
   causes <- character()
   
+  # calculate age in DAYS from dates of birth, death (more reliable than age provided in dataset (?) )
+  if( age_days_available ){
+    if( !is.na( responses$age_days) ){
+      age <- responses$age_days
+    } else{
+      age <- NA
+    }
+  } else{
+    age <- NA
+  } 
+  
+  if( is.na(age) | (age < 29 ) ){
+    # apply neonatal algorithm instead!
+    return("Neonate")
+  }
+  
   # durations of decedent's various conditions in DAYS
   days_fever <- fever_duration(responses, format) 
   days_rash <- rash_duration(responses, format) 
@@ -169,14 +186,6 @@ cod <- function(responses,
   days_diarrhea <- diarrhea_duration(responses, format) 
   days_fast_breathing <- fast_breathing_duration(responses, format) 
   days_difficulty_breathing <- difficulty_breathing_duration(responses, days_difficulty_breathing_available) 
-  
-  # calculate age in DAYS from dates of birth, death (more reliable than age provided in dataset)
-  age <- age_in_days(responses, format) 
-  
-  if( is.na(age) | (age < 29 ) ){
-    # apply neonatal algorithm instead!
-    return("Neonate")
-  }
   
   # binaries for decedent's conditions 
   fever <- fever_p(responses, fever_available)
