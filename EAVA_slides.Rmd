@@ -42,6 +42,7 @@ tabulate_causes <- function( cleaned_causes ){
 
   comorbid <-  cleaned_causes %>% 
     group_by(Primary) %>% 
+    filter( Comorbidities != "") %>%
     summarize( Comorbidities = paste0( unique( unlist( strsplit( paste0(Comorbidities, collapse = ", "), ", ", fixed=TRUE))), collapse = ", "))
 
   return( tallies %>% left_join( comorbid, by="Primary" ) %>% arrange( desc(Count) ) )
@@ -59,9 +60,9 @@ print_causes <- function( causes ){
 
 # Overview
 
-## EAVA algorithms 
+## EAVA
 
-Expert Algorithm for Verbal Autopsy (EAVA) based on
+Expert Algorithms for Verbal Autopsy (EAVA) based on
 
 > Kalter et al., [Direct estimates of national neonatal and child cause–specific mortality proportions in Niger by expert algorithm and physician–coded analysis of verbal autopsy interviews](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4416334/), J Glob Health. 2015 Jun; 5(1): 010415
 
@@ -69,8 +70,49 @@ and
 
 > Liu et al., [Deriving causes of child mortality by re–analyzing national verbal autopsy data applying a standardized computer algorithm in Uganda, Rwanda and Ghana](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4467513/), J Glob Health. 2015 Jun; 5(1): 010414
 
-## Hierarchies
+## Kalter hierarchy 
 
+<div style="float: left; width: 50%;">
+<ol start="1">
+<li>Injury</li>
+<li>AIDS</li>
+<li>Malnutrition (underlying)</li>
+<li>Measles</li>
+<li>Meningitis</li>
+<li>Dysentery</li>
+<li>Diarrhea</li>
+<li>Pertussis</li>
+<li>Pneumonia</li>
+</ol>
+</div>
+
+<div style="float: right; width: 50%;">
+<ol start="10">
+<li>Malaria</li>
+<li>Possible dysentery</li>
+<li>Possible diarrhea</li>
+<li>Possible pneumonia</li>
+<li>Hemorrhagic fever</li>
+<li>Other infection</li>
+<li>Possible malaria</li>
+<li>Malnutrition</li>
+<li>Unspecified</li>
+</ol>
+</div>
+
+## Liu hierarchy
+
+1. Injury
+2. Measles
+3. Meningitis
+4. Malaria
+5. AIDS
+6. Diarrhea
+7. Acute Respiratory Infection
+8. Possible pneumonia
+9. Possible diarrhea
+10. Unspecified
+    
 # Mali results
 
 ## CHAMPS_Verbal_Autopsy_Form_results
