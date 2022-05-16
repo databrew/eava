@@ -1,4 +1,5 @@
-# implements the hierarchical expert algorithms for verbal autopsy described in 
+
+# implements the hierarchical expert algorithms for verbal autopsy (EAVA) described in 
 # [Kalter et al. 2015](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4416334/) (doi: 10.7189/jogh.05.010415)
 # and in
 # [Liu et al. 2015](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4467513/) (doi: 10.7189/jogh.05.010414) 
@@ -20,10 +21,9 @@ supported_formats <- c("champs1", "champs2", "champs3", "child_mali",
 #' @param babel_data : a data.frame of VA responses for multiple decedents (typically from one study site)
 #' @param format : mapper used in babel translation
 #' @param algo : hierarchical algorithm to use; options; "kalter", "liu"
-#' @param age_group : either "children" or "neonates"
 #' @return causes : causes of death determined by the hierarchical expert algorithm 
 #' 
-get_causes <- function(babel_data, format, algo = "kalter", age_group = "children") {
+get_causes <- function(babel_data, format, algo = "kalter") {
   
   question_names <- names( babel_data )
   
@@ -80,9 +80,11 @@ get_causes <- function(babel_data, format, algo = "kalter", age_group = "childre
   flaring_nostrils_available <<- "flaring_nostrils" %in% question_names
 
   if( format %in% supported_formats ){
-    causes <- list(mode = "character")
+    # causes <- list(mode = "character")
+    causes <- data.frame( )
     for (i in 1:nrow(babel_data)) {
-      causes[[i]] <- cod( babel_data[i,], format, algo, age_group )
+      # causes[[i]] <- cod( babel_data[i,], format, algo )
+      causes <- rbind( causes, cod( babel_data[i,], format, algo ))
     }
     return(causes)
   } else{
@@ -97,34 +99,30 @@ get_causes <- function(babel_data, format, algo = "kalter", age_group = "childre
 #' @param responses : a data.frame of VA responses for one person (one row from a larger VA dataset)
 #' @return cod : the cause of death determined by the hierarchical expert algorithm 
 #' 
-cod <- function(responses, format, algo, age_group){
+cod <- function(responses, format, algo ){
   
   causes <- character()
-  
-  # calculate age in DAYS from dates of birth, death (more reliable than age provided in dataset (?) )
+
+  # calculate age in DAYS from dates of birth, death 
+  # NB: assumes that the age_days variable has been cleaned as in the script `clean_ages.R` !!
   if( age_days_available ){
     if( !is.na( responses$age_days) ){
-      age <- responses$age_days
+      age_days <- responses$age_days
     } else{
-      age <- NA
+      age_days <- NA
     }
   } else{
-    age <- NA
+    age_days <- NA
   } 
   
   # validate age -----
-  if( age_group == "children" ){ 
-    if( is.na(age) | (age < 29 ) ){
-      # apply neonatal algorithm instead!
-      return("Neonate")
-    } 
-  } else if( age_group == "neonates"){
-    if( is.na(age) | (age >= 29 ) ){
-      # apply child algorithm instead!
-      return("Child")
-    } 
+  
+  if( is.na( age_days ) | age_days == 0){
+    return( data.frame( age_days=age_days, age_group="Unknown", causes="Unknown") )
+  } else if( age_days < 29 ){
+    age_group <- "Neonate"
   } else{
-    return("Invalid age group")
+    age_group <- "Child"
   }
   
   # durations of decedent's various conditions in DAYS -----
@@ -176,9 +174,11 @@ cod <- function(responses, format, algo, age_group){
   sunken_fontanelle <- sunken_fontanelle_p( responses )
   flaring_nostrils <- flaring_nostrils_p( responses )
   
-  # now check specific causes of death...
+  # now check specific causes of death -----
   
-  if( algo == "kalter" ){
+  if( algo == "kalter" & age_group == "Child"){
+    
+    # Kalter child -----
     
     if( injury(responses) ){
       # return("Injury")
@@ -194,7 +194,7 @@ cod <- function(responses, format, algo, age_group){
       causes <- c( causes, "Malnutrition (underlying)" )
     }
     
-    if( measles_kalter(age, days_rash, days_fever) ){
+    if( measles_kalter(age_days, days_rash, days_fever) ){
       causes <- c( causes, "Measles" )
     }
     
@@ -253,18 +253,20 @@ cod <- function(responses, format, algo, age_group){
     }
     
     if( length( causes ) > 0){
-      return(causes)
+      return( data.frame( age_days=age_days, age_group=age_group, causes=paste0(causes, collapse=", ")) )
     } else{
-      return("Unspecified")
+      return( data.frame( age_days=age_days, age_group=age_group, causes="Unspecified") )
     }
     
-  } else if( algo == "liu" ){
+  } else if( algo == "liu" & age_group == "Child"){ 
+    
+    # Liu child -----
     
     if( injury( responses ) ){
       causes <- c( causes, "Injury" )
     }
   
-    if( measles_liu( age, fever, measles_rash, cough, red_eyes ) ){
+    if( measles_liu( age_days, fever, measles_rash, cough, red_eyes ) ){
       causes <- c( causes, "Measles" )
     }
   
@@ -298,9 +300,89 @@ cod <- function(responses, format, algo, age_group){
     }
   
     if( length( causes ) > 0){
-      return(causes)
+      return( data.frame( age_days=age_days, age_group=age_group, causes=paste0(causes, collapse=", ")) )
     } else{
-      return("Unspecified")
+      return( data.frame( age_days=age_days, age_group=age_group, causes="Unspecified") )
+    }
+    
+  } else if( algo == "kalter" & age_group == "Neonate"){
+    
+    # Kalter neonate -----
+    
+    if( neonatal_tetanus_kalter( age_days, convulsions) ){
+      causes <- c( causes, "Neonatal tetanus" )
+    }
+    
+    if( malformation_kalter() ){
+      causes <- c( causes, "Congenital malformation")
+    }
+    
+    if( asphyxia_kalter() ){
+      causes <- c( causes, "Birth asphyxia")
+    }
+    
+    if( birth_injury_kalter() ){
+      causes <- c( causes, "Birth injury")
+    }
+    
+    if( preterm_respiratory_distress_kalter() ){
+      causes <- c( causes, "Preterm delivery with respiratory distress syndrome")
+    }
+    
+    if( neonatal_meningitis_kalter() ){
+      causes <- c( causes, "Meningitis")
+    }
+    
+    if( neonatal_diarrhea_kalter() ){
+      causes <- c( causes, "Diarrhea")
+    }
+    
+    if( neonatal_pneumonia_kalter() ){
+      causes <- c( causes, "Pneumonia")
+    }
+    
+    if( neonatal_possible_diarrhea_kalter() ){
+      causes <- c( causes, "Possible diarrhea")
+    } 
+    
+    if( neonatal_possible_pneumonia_kalter() ){
+      causes <- c( causes, "Possible pneumonia")
+    }
+    
+    if( sepsis_kalter() ){
+      causes <- c( causes, "Sepsis")
+    }
+    
+    if( neonatal_jaundice_kalter() ){
+      causes <- c( causes, "Neonatal jaundice")
+    }
+    
+    if( neonatal_hemorrhagic_kalter() ){
+      causes <- c( causes, "Neonatal hemorrhagic syndrome")
+    }
+    
+    if( neonatal_sudden_kalter() ){
+      causes <- c( causes, "Sudden unexplained death")
+    }
+    
+    if( preterm_kalter() ){
+      causes <- c( causes, "Preterm delivery")
+    }
+    
+    if( length( causes ) > 0){
+      return( data.frame( age_days=age_days, age_group=age_group, causes=paste0(causes, collapse=", ")) )
+    } else{
+      return( data.frame( age_days=age_days, age_group=age_group, causes="Unspecified") )
+    }
+    
+  } else if( algo == "liu" & age_group == "Neonate"){
+    
+    # Liu neonate -----
+    
+    if( length( causes ) > 0){
+      return( data.frame( age_days=age_days, age_group=age_group, causes=paste0(causes, collapse=", ")) )
+    } else{
+      return( data.frame( age_days=age_days, age_group=age_group, causes="Unspecified") )
     }
     
   }
@@ -1083,7 +1165,7 @@ injury <- function( responses ){
   }
 }
 
-# Causes according to Kalter -----
+# CHILD causes of death according to Kalter -----
 
 # AIDS (Kalter) -----
 
@@ -1105,8 +1187,8 @@ underlying_malnutrition_kalter <- function( thin_limbs, swollen_legs_feet ){
 
 # Measles (Kalter) -----
 
-measles_kalter <- function( age, days_rash, days_fever ){
-  return( (age > 120) & (days_rash >= 3) & (days_fever >= 3) )
+measles_kalter <- function( age_days, days_rash, days_fever ){
+  return( (age_days > 120) & (days_rash >= 3) & (days_fever >= 3) )
 }
 
 # Meningitis (Kalter) -----
@@ -1200,12 +1282,12 @@ malnutrition_kalter <- function( thin_limbs, swollen_legs_feet ){
   return( thin_limbs | swollen_legs_feet )
 }
 
-# Causes according to Liu -----
+# CHILD causes of death according to Liu -----
 
 # Measles (Liu) -----
 
-measles_liu <- function( age, fever, measles_rash, cough, red_eyes ){
-  return( (age > 180) & measles_rash & fever & (cough | red_eyes) )
+measles_liu <- function( age_days, fever, measles_rash, cough, red_eyes ){
+  return( (age_days > 180) & measles_rash & fever & (cough | red_eyes) )
 }
 
 # Meningitis (Liu) -----
@@ -1252,3 +1334,66 @@ possible_diarrhea_liu <- function( diarrhea, difficulty_breathing, chest_indrawi
   return( ( difficulty_breathing + chest_indrawing + convulsions + fever >= 2 ) & diarrhea )
 }
 
+# NEONATE causes of death according to Kalter
+
+neonatal_tetanus_kalter <- function(){
+  return( FALSE )
+}
+
+malformation_kalter <- function(){
+  return( FALSE )
+}
+
+asphyxia_kalter <- function(){
+  return( FALSE )
+}
+
+birth_injury_kalter <- function(){
+  return( FALSE )
+}
+
+preterm_respiratory_distress_kalter <- function(){
+  return( FALSE )
+}
+
+neonatal_meningitis_kalter <- function(){
+  return( FALSE )
+}
+
+neonatal_diarrhea_kalter <- function(){
+  return( FALSE )
+}
+
+neonatal_pneumonia_kalter <- function(){
+  return( FALSE )
+}
+
+neonatal_possible_diarrhea_kalter <- function(){
+  return( FALSE )
+}
+
+neonatal_possible_pneumonia_kalter <- function(){
+  return( FALSE )
+}
+
+sepsis_kalter <- function(){
+  return( FALSE )
+}
+
+neonatal_jaundice_kalter <- function(){
+  return( FALSE )
+}
+
+neonatal_hemorrhagic_kalter <- function(){
+  return( FALSE )
+}
+
+neonatal_sudden_kalter <- function(){
+  return( FALSE )
+}
+
+preterm_kalter <- function(){
+  return( FALSE )
+}
+
+# NEONATE causes of death according to Liu

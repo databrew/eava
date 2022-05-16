@@ -14,8 +14,7 @@ get_ages <- function( babel_data ){
 }
 
 age_in_days <- function( responses ){
-  # CHECK THE USE OF mdy HERE!!!
-  # does not work for format c08_12
+  # mdy() does not work for format c08_12
   return( difftime( mdy(responses$date_death_deceased), mdy(responses$date_birth_deceased), units="days") )
 }
 

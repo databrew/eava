@@ -19,41 +19,54 @@ source("eava.R")
 ```
 
 ```{r}
-# causes is a list created by get_causes ; 
+# causes is a data.frame created by get_causes; 3rd column contains cause(s) of death determined by EAVA
 # 1st entry is primary cause, others are possible comborbidities
+
 clean_causes <- function( causes ){
-  primary_causes <- sapply(causes,"[[",1) 
-  comorbidities <- character( length = length( primary_causes ) ) 
-  for( i in 1:length( causes ) ){
-    if( length(causes[[i]]) == 1 ){
-      comorbidities[i] <- ""
+  primary <- character()
+  comorbidities <- character()
+  for(i in 1:nrow(causes)){
+    all <- unlist( strsplit( causes$causes[i], ", ", fixed = TRUE))
+    if( length( all ) == 1 ){
+      primary[i] <- all
+      comorbidities[i] <- NA
     } else{
-      comorbidities[i] <- paste0( causes[[i]][-1], collapse=", " )
+      primary[i] <- all[1]
+      comorbidities[i] <- paste0( all[-1], collapse=", ")
     }
   }
-  return( data.frame( Primary = primary_causes, Comorbidities = comorbidities) )
+  return( causes %>% 
+            mutate( Primary=primary, Comorbidities = comorbidities ) %>% 
+            select(-causes) %>% 
+            rename("Age in days" = age_days, "Age group" = age_group) )
+  
 }
 
-tabulate_causes <- function( cleaned_causes ){
+tally_causes <- function( cleaned_causes, age_group ){
 
   tallies <- cleaned_causes %>%
+    filter( `Age group` == age_group) %>%
     group_by( Primary ) %>%
     tally( name="Count") 
 
   comorbid <-  cleaned_causes %>% 
+    filter( `Age group` == age_group) %>%
     group_by(Primary) %>% 
-    filter( Comorbidities != "") %>%
+    drop_na(Comorbidities) %>%
     summarize( Comorbidities = paste0( unique( unlist( strsplit( paste0(Comorbidities, collapse = ", "), ", ", fixed=TRUE))), collapse = ", "))
 
   return( tallies %>% left_join( comorbid, by="Primary" ) %>% arrange( desc(Count) ) )
 }
 
-print_causes <- function( causes ){
-  tabulate_causes( clean_causes( causes ) ) %>%
-    rename( "Possible comorbidities" = Comorbidities) %>%
+print_causes <- function( causes, age_group="Child" ){
+  
+  tally_causes( clean_causes( causes ), age_group ) %>%
+    rename( "Possible comorbidities" = Comorbidities) %>% 
     regulartable() %>% 
+    set_caption( paste0("Causes of death for ", ifelse(age_group=="Child", "children", "neonates"))) %>%
     theme_zebra() %>% 
     autofit()
+
 }
 
 ```
@@ -119,15 +132,21 @@ and
 
 ```{r}
 df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_results_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="champs2", algo="kalter", age_group="children")
+causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
 ## CHAMPS_Verbal_Autopsy_Form_results
 
 ```{r}
+print_causes( causes, age_group = "Neonate" )
+```
+
+## CHAMPS_Verbal_Autopsy_Form_results
+
+```{r}
 df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_results_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="champs2", algo="liu", age_group="children")
+causes <- get_causes(df, format="champs2", algo="liu")
 print_causes( causes )
 ```
 
@@ -135,7 +154,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_1_results_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="champs2", algo="kalter", age_group="children")
+causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
@@ -143,7 +162,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_1_results_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="champs2", algo="liu", age_group="children")
+causes <- get_causes(df, format="champs2", algo="liu")
 print_causes( causes )
 ```
 
@@ -151,7 +170,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_results_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="champs2", algo="kalter", age_group="children")
+causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
@@ -159,7 +178,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_results_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="champs2", algo="liu", age_group="children")
+causes <- get_causes(df, format="champs2", algo="liu")
 print_causes( causes )
 ```
 
@@ -167,7 +186,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/mali_babel/VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="champs1", algo="kalter", age_group="children")
+causes <- get_causes(df, format="champs1", algo="kalter")
 print_causes( causes )
 ```
 
@@ -175,7 +194,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/mali_babel/VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="champs1", algo="liu", age_group="children")
+causes <- get_causes(df, format="champs1", algo="liu")
 print_causes( causes )
 ```
 
@@ -185,7 +204,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/gambia_babel/bn_hdss/VA_Child_WHO2016_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c16", algo="kalter", age_group="children")
+causes <- get_causes(df, format="c16", algo="kalter")
 print_causes( causes )
 ```
 
@@ -193,7 +212,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/gambia_babel/bn_hdss/VA_Child_WHO2016_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c16", algo="liu", age_group="children")
+causes <- get_causes(df, format="c16", algo="liu")
 print_causes( causes )
 ```
 
@@ -201,7 +220,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/gambia_babel/bn_hdss/VA_ChildForm_WHO2012_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c12_16", algo="kalter", age_group="children")
+causes <- get_causes(df, format="c12_16", algo="kalter")
 print_causes( causes )
 ```
 
@@ -209,7 +228,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/gambia_babel/bn_hdss/VA_ChildForm_WHO2012_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c12_16", algo="liu", age_group="children")
+causes <- get_causes(df, format="c12_16", algo="liu")
 print_causes( causes )
 ```
 
@@ -217,7 +236,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_Indepth_2008-2012_clean duration_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c08_12", algo="kalter", age_group="children")
+causes <- get_causes(df, format="c08_12", algo="kalter")
 print_causes( causes )
 ```
 
@@ -225,7 +244,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_Indepth_2008-2012_clean duration_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c08_12", algo="liu", age_group="children")
+causes <- get_causes(df, format="c08_12", algo="liu")
 print_causes( causes )
 ```
 
@@ -233,7 +252,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_Indepth_2008-2012_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c08_12", algo="kalter", age_group="children")
+causes <- get_causes(df, format="c08_12", algo="kalter")
 print_causes( causes )
 ```
 
@@ -241,7 +260,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_Indepth_2008-2012_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c08_12", algo="liu", age_group="children")
+causes <- get_causes(df, format="c08_12", algo="liu")
 print_causes( causes )
 ```
 
@@ -249,7 +268,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2012-mid 2016_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c12_16", algo="kalter", age_group="children")
+causes <- get_causes(df, format="c12_16", algo="kalter")
 print_causes( causes )
 ```
 
@@ -257,7 +276,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2012-mid 2016_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c12_16", algo="liu", age_group="children")
+causes <- get_causes(df, format="c12_16", algo="liu")
 print_causes( causes )
 ```
 
@@ -265,7 +284,7 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2016_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c16", algo="kalter", age_group="children")
+causes <- get_causes(df, format="c16", algo="kalter")
 print_causes( causes )
 ```
 
@@ -273,6 +292,6 @@ print_causes( causes )
 
 ```{r}
 df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2016_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c16", algo="liu", age_group="children")
+causes <- get_causes(df, format="c16", algo="liu")
 print_causes( causes )
 ```
