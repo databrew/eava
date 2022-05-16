@@ -78,6 +78,13 @@ get_causes <- function(babel_data, format, algo = "kalter") {
   sunken_eye_available <<- "sunken_eye" %in% question_names
   sunken_fontanelle_available <<- "sunken_fontanelle" %in% question_names
   flaring_nostrils_available <<- "flaring_nostrils" %in% question_names
+  suckle_feed_available <<- "suckle_feed" %in% question_names
+  stop_suckle_available <<- "stop_suckle" %in% question_names
+  baby_cry_available <<- "baby_cry" %in% question_names
+  cry_after_birth_available <<- "cry_after_birth" %in% question_names
+  baby_cry_after_birth_available <<- "baby_cry_after_birth" %in% question_names
+  stop_ability_to_cry_available <<- "stop_ability_to_cry" %in% question_names
+  malformation_available <<- "malformation" %in% question_names
 
   if( format %in% supported_formats ){
     # causes <- list(mode = "character")
@@ -173,6 +180,13 @@ cod <- function(responses, format, algo ){
   sunken_eye <- sunken_eye_p( responses )
   sunken_fontanelle <- sunken_fontanelle_p( responses )
   flaring_nostrils <- flaring_nostrils_p( responses )
+  suckle_feed <- suckle_feed_p( responses )
+  stop_suckle <- stop_suckle_p( responses )
+  baby_cry <- baby_cry_p( responses )
+  cry_after_birth <- cry_after_birth_p( responses )
+  baby_cry_after_birth <- baby_cry_after_birth_p( responses )
+  stop_ability_to_cry <- stop_ability_to_cry_p( responses )
+  malformation <- malformation_p( responses )
   
   # now check specific causes of death -----
   
@@ -309,11 +323,12 @@ cod <- function(responses, format, algo ){
     
     # Kalter neonate -----
     
-    if( neonatal_tetanus_kalter( age_days, convulsions) ){
+    if( neonatal_tetanus_kalter( age_days, convulsions, suckle_feed, stop_suckle, 
+                                 cry_after_birth, baby_cry_after_birth, stop_ability_to_cry ) ){
       causes <- c( causes, "Neonatal tetanus" )
     }
     
-    if( malformation_kalter() ){
+    if( malformation_kalter( malformation ) ){
       causes <- c( causes, "Congenital malformation")
     }
     
@@ -1129,6 +1144,90 @@ flaring_nostrils_p <- function(responses ){
   }
 }
 
+suckle_feed_p <- function(responses ){
+  if( suckle_feed_available ){
+    if(!is.na(responses$suckle_feed) & (responses$suckle_feed == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
+stop_suckle_p <- function(responses ){
+  if( stop_suckle_available ){
+    if(!is.na(responses$stop_suckle) & (responses$stop_suckle == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
+baby_cry_p <- function(responses ){
+  if( baby_cry_available ){
+    if(!is.na(responses$baby_cry) & (responses$baby_cry == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
+cry_after_birth_p <- function(responses ){
+  if( cry_after_birth_available ){
+    if(!is.na(responses$cry_after_birth) & (responses$cry_after_birth == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
+baby_cry_after_birth_p <- function(responses ){
+  if( baby_cry_after_birth_available ){
+    if(!is.na(responses$baby_cry_after_birth) & (responses$baby_cry_after_birth == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
+stop_ability_to_cry_p <- function(responses ){
+  if( stop_ability_to_cry_available ){
+    if(!is.na(responses$stop_ability_to_cry) & (responses$stop_ability_to_cry == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
+malformation_p <- function( responses ){
+  if( malformation_available ){
+    if(!is.na(responses$malformation) & (responses$malformation == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
 # Injury -----
 
 injury <- function( responses ){
@@ -1336,12 +1435,14 @@ possible_diarrhea_liu <- function( diarrhea, difficulty_breathing, chest_indrawi
 
 # NEONATE causes of death according to Kalter
 
-neonatal_tetanus_kalter <- function(){
-  return( FALSE )
+neonatal_tetanus_kalter <- function( age_days, convulsions, suckle_feed, stop_suckle, 
+                                     cry_after_birth, baby_cry_after_birth, stop_ability_to_cry ){
+  return( ( (age_days >=3) & (age_days <= 27) & convulsions ) & 
+          ( ( suckle_feed & stop_suckle ) | ( (cry_after_birth | baby_cry_after_birth) & stop_ability_to_cry ) ) )
 }
 
-malformation_kalter <- function(){
-  return( FALSE )
+malformation_kalter <- function( malformation ){
+  return( malformation )
 }
 
 asphyxia_kalter <- function(){
