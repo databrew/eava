@@ -60,13 +60,27 @@ tally_causes <- function( cleaned_causes, age_group ){
 
 print_causes <- function( causes, age_group="Child" ){
   
-  tally_causes( clean_causes( causes ), age_group ) %>%
+tally_causes( clean_causes( causes ), age_group ) %>%
     rename( "Possible comorbidities" = Comorbidities) %>% 
     regulartable() %>% 
     set_caption( paste0("Causes of death for ", ifelse(age_group=="Child", "children", "neonates"))) %>%
     theme_zebra() %>% 
     autofit()
+}
 
+diarrhea_table <- function( df ){
+  # if( any( !is.na( df$diarrhea ) ) ){
+  tab <- as.data.frame( table( df$diarrhea, useNA = "ifany" ) )
+  colnames( tab ) <- c("Response", "Count")
+  tab <- tab %>%
+    mutate( Response = recode_factor(.x = Response,
+                                     "dk" = "Don't know",
+                                     "no" = "No",
+                                     "yes" = "Yes",
+                                     "Sum" = "Total")) %>%
+    mutate( Percentage = paste0( round(100*Count / sum(Count)), "%" ) ) 
+  regulartable(tab) %>% align(j=2:3, align="right", part="all")
+  # } 
 }
 
 ```
@@ -130,8 +144,19 @@ and
 
 ## CHAMPS_Verbal_Autopsy_Form_results
 
+Overall diarrhea incidence based on answers to the standardized questions :
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
 ```{r}
 df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_results_babel.csv", show_col_types = FALSE)
+diarrhea_table( df )
+```
+
+## CHAMPS_Verbal_Autopsy_Form_results
+
+```{r}
+# df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_results_babel.csv", show_col_types = FALSE)
 causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
