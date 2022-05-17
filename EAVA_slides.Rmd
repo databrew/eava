@@ -161,6 +161,12 @@ print_causes( causes )
 ## CHAMPS_Verbal_Autopsy_Form_v2_04_1_results
 
 ```{r}
+print_causes( causes, age_group = "Neonate" )
+```
+
+## CHAMPS_Verbal_Autopsy_Form_v2_04_1_results
+
+```{r}
 df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_1_results_babel.csv", show_col_types = FALSE)
 causes <- get_causes(df, format="champs2", algo="liu")
 print_causes( causes )
@@ -177,6 +183,12 @@ print_causes( causes )
 ## CHAMPS_Verbal_Autopsy_Form_v2_04_results
 
 ```{r}
+print_causes( causes, age_group = "Neonate" )
+```
+
+## CHAMPS_Verbal_Autopsy_Form_v2_04_results
+
+```{r}
 df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_results_babel.csv", show_col_types = FALSE)
 causes <- get_causes(df, format="champs2", algo="liu")
 print_causes( causes )
@@ -188,6 +200,12 @@ print_causes( causes )
 df <- read_csv("data/mali_babel/VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel.csv", show_col_types = FALSE)
 causes <- get_causes(df, format="champs1", algo="kalter")
 print_causes( causes )
+```
+
+## VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018
+
+```{r}
+print_causes( causes, age_group = "Neonate" )
 ```
 
 ## VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018

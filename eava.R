@@ -25,7 +25,7 @@ supported_formats <- c("champs1", "champs2", "champs3", "child_mali",
 #' 
 get_causes <- function(babel_data, format, algo = "kalter") {
   
-  question_names <- names( babel_data )
+  question_names <<- names( babel_data )
   
   # check availability of certain indicators -- avoids errors when trying to access nonexistent columns by name 
   # depends on format, not on responses for an individual decedent, so precedes response-dependent functions
@@ -85,6 +85,14 @@ get_causes <- function(babel_data, format, algo = "kalter") {
   baby_cry_after_birth_available <<- "baby_cry_after_birth" %in% question_names
   stop_ability_to_cry_available <<- "stop_ability_to_cry" %in% question_names
   malformation_available <<- "malformation" %in% question_names
+  baby_breathe_after_birth_available <<- "baby_breathe_after_birth" %in% question_names
+  lethargic_available <<- "lethargic" %in% question_names
+  bruises_injury_available <<- "bruises_injury" %in% question_names
+  sign_injury_broken_bones_available <<- "sign_injury_broken_bones" %in% question_names
+  cold_touch_available <<- "cold_touch" %in% question_names
+  vomit_available <<- "vomit" %in% question_names
+  die_suddenly_available <<- "die_suddenly" %in% question_names
+  appear_healthy_available <<- "appear_healthy" %in% question_names
 
   if( format %in% supported_formats ){
     # causes <- list(mode = "character")
@@ -124,7 +132,7 @@ cod <- function(responses, format, algo ){
   
   # validate age -----
   
-  if( is.na( age_days ) | age_days == 0){
+  if( is.na( age_days ) | age_days < 0){
     return( data.frame( age_days=age_days, age_group="Unknown", causes="Unknown") )
   } else if( age_days < 29 ){
     age_group <- "Neonate"
@@ -132,13 +140,14 @@ cod <- function(responses, format, algo ){
     age_group <- "Child"
   }
   
-  # durations of decedent's various conditions in DAYS -----
+  # durations of decedent's various conditions in indicated units -----
   days_fever <- fever_duration(responses, format) 
   days_rash <- rash_duration(responses, format) 
   days_cough <- cough_duration(responses, format) 
   days_diarrhea <- diarrhea_duration(responses, format) 
   days_fast_breathing <- fast_breathing_duration(responses, format) 
   days_difficulty_breathing <- difficulty_breathing_duration( responses ) 
+  months_pregnancy <- pregnancy_duration( responses )
   
   # peak stool count -----
   number_stools <- stool_count( responses )
@@ -187,6 +196,14 @@ cod <- function(responses, format, algo ){
   baby_cry_after_birth <- baby_cry_after_birth_p( responses )
   stop_ability_to_cry <- stop_ability_to_cry_p( responses )
   malformation <- malformation_p( responses )
+  baby_breathe_after_birth <- baby_breathe_after_birth_p( responses )
+  lethargic <- lethargic_p( responses )
+  bruises_injury <- bruises_injury_p( responses )
+  sign_injury_broken_bones <- sign_injury_broken_bones_p( responses )
+  cold_touch <- cold_touch_p( responses )
+  vomit <- vomit_p( responses )
+  die_suddenly <- die_suddenly_p( responses )
+  appear_healthy <- appear_healthy_p( responses )
   
   # now check specific causes of death -----
   
@@ -332,55 +349,60 @@ cod <- function(responses, format, algo ){
       causes <- c( causes, "Congenital malformation")
     }
     
-    if( asphyxia_kalter() ){
+    if( asphyxia_kalter( age_days, cry_after_birth, baby_cry_after_birth, baby_breathe_after_birth, 
+                         suckle_feed, convulsions, lethargic ) ){
       causes <- c( causes, "Birth asphyxia")
     }
     
-    if( birth_injury_kalter() ){
+    if( birth_injury_kalter( bruises_injury, sign_injury_broken_bones ) ){
       causes <- c( causes, "Birth injury")
     }
     
-    if( preterm_respiratory_distress_kalter() ){
+    if( preterm_respiratory_distress_kalter( months_pregnancy, fast_breathing, fever, cold_touch) ){
       causes <- c( causes, "Preterm delivery with respiratory distress syndrome")
     }
     
-    if( neonatal_meningitis_kalter() ){
+    if( neonatal_meningitis_kalter( fever, bulging_fontanelle, convulsions, lethargic, unconscious ) ){
       causes <- c( causes, "Meningitis")
     }
     
-    if( neonatal_diarrhea_kalter() ){
+    if( neonatal_diarrhea_kalter( diarrhea, number_stools ) ){
       causes <- c( causes, "Diarrhea")
     }
     
-    if( neonatal_pneumonia_kalter() ){
+    if( neonatal_pneumonia_kalter( days_difficulty_breathing, days_fast_breathing, chest_indrawing, 
+                                   noisy_breathing, baby_cry, stop_ability_to_cry ) ){
       causes <- c( causes, "Pneumonia")
     }
     
-    if( neonatal_possible_diarrhea_kalter() ){
+    if( neonatal_possible_diarrhea_kalter( diarrhea, fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
+                                           stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing) ){
       causes <- c( causes, "Possible diarrhea")
     } 
     
-    if( neonatal_possible_pneumonia_kalter() ){
+    if( neonatal_possible_pneumonia_kalter( difficulty_breathing, fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
+                                            stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing) ){
       causes <- c( causes, "Possible pneumonia")
     }
     
-    if( sepsis_kalter() ){
+    if( sepsis_kalter( fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
+                       stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing) ){
       causes <- c( causes, "Sepsis")
     }
     
-    if( neonatal_jaundice_kalter() ){
+    if( neonatal_jaundice_kalter( jaundice, stop_suckle, lethargic, unconscious, fever ) ){
       causes <- c( causes, "Neonatal jaundice")
     }
     
-    if( neonatal_hemorrhagic_kalter() ){
+    if( neonatal_hemorrhagic_kalter( bled_anywhere, fever, cold_touch ) ){
       causes <- c( causes, "Neonatal hemorrhagic syndrome")
     }
     
-    if( neonatal_sudden_kalter() ){
+    if( neonatal_sudden_kalter( die_suddenly, appear_healthy ) ){
       causes <- c( causes, "Sudden unexplained death")
     }
     
-    if( preterm_kalter() ){
+    if( preterm_kalter( months_pregnancy ) ){
       causes <- c( causes, "Preterm delivery")
     }
     
@@ -610,6 +632,32 @@ difficulty_breathing_duration <- function( responses ){
   } else{
     return(0)
   }
+}
+
+pregnancy_duration <- function( responses ){
+  # possibilities: months_pregnancy, weeks_pregnancy, duration_pregnancy_weeks, duration_pregnancy_months
+  if( "months_pregnancy" %in% question_names ){
+    if( !is.na(responses$months_pregnancy) & !is.na( as.numeric( responses$months_pregnancy )) ){
+      return( as.numeric( responses$months_pregnancy ) )
+    }
+  }
+  if( "weeks_pregnancy" %in% question_names ){
+    if( !is.na(responses$weeks_pregnancy) & !is.na( as.numeric( responses$weeks_pregnancy )) ){
+      return( as.numeric( responses$weeks_pregnancy )/4 ) 
+    }
+  }
+  if( "duration_pregnancy_months" %in% question_names ){
+    if( !is.na(responses$duration_pregnancy_months) & !is.na( as.numeric( responses$duration_pregnancy_months )) ){
+      return( as.numeric( responses$duration_pregnancy_months ) )
+    }
+  }
+  if( "duration_pregnancy_weeks" %in% question_names ){
+    if( !is.na(responses$duration_pregnancy_weeks) & !is.na( as.numeric( responses$duration_pregnancy_weeks )) ){
+      return( as.numeric( responses$duration_pregnancy_weeks ) )
+    }
+  }
+  # at this point, have exhausted the possibilities, so
+  return(0)
 }
 
 # Stool count -----
@@ -1228,6 +1276,102 @@ malformation_p <- function( responses ){
   }
 }
 
+baby_breathe_after_birth_p <- function( responses ){
+  if( baby_breathe_after_birth_available ){
+    if(!is.na(responses$baby_breathe_after_birth) & (responses$baby_breathe_after_birth == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
+lethargic_p <- function( responses ){
+  if( lethargic_available ){
+    if(!is.na(responses$lethargic) & (responses$lethargic == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
+bruises_injury_p <- function( responses ){
+  if( bruises_injury_available ){
+    if(!is.na(responses$bruises_injury) & (responses$bruises_injury == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
+sign_injury_broken_bones_p <- function( responses ){
+  if( sign_injury_broken_bones_available ){
+    if(!is.na(responses$sign_injury_broken_bones) & (responses$sign_injury_broken_bones == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+ 
+cold_touch_p <- function( responses ){
+  if( cold_touch_available ){
+    if(!is.na(responses$cold_touch) & (responses$cold_touch == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
+vomit_p <- function( responses ){
+  if( vomit_available ){
+    if(!is.na(responses$vomit) & (responses$vomit == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
+die_suddenly_p <- function( responses ){
+  if( die_suddenly_available ){
+    if(!is.na(responses$die_suddenly) & (responses$die_suddenly == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
+appear_healthy_p <- function( responses ){
+  if( appear_healthy_available ){
+    if(!is.na(responses$appear_healthy) & (responses$appear_healthy == "yes")){
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{
+    return(FALSE)
+  }
+}
+
 # Injury -----
 
 injury <- function( responses ){
@@ -1445,56 +1589,67 @@ malformation_kalter <- function( malformation ){
   return( malformation )
 }
 
-asphyxia_kalter <- function(){
-  return( FALSE )
+asphyxia_kalter <- function( age_days, cry_after_birth, baby_cry_after_birth, baby_breathe_after_birth, 
+                             suckle_feed, convulsions, lethargic ){
+  return( ( !(cry_after_birth | baby_cry_after_birth) | !baby_breathe_after_birth ) &
+          ( !suckle_feed  | convulsions | lethargic | (age_days==0) ) )
+ }
+
+birth_injury_kalter <- function( bruises_injury, sign_injury_broken_bones ){
+  return( bruises_injury | sign_injury_broken_bones )
 }
 
-birth_injury_kalter <- function(){
-  return( FALSE )
+preterm_respiratory_distress_kalter <- function( months_pregnancy, fast_breathing, fever, cold_touch ){
+  return( ( months_pregnancy < 9 ) & ( fast_breathing & !fever & !cold_touch ) )
 }
 
-preterm_respiratory_distress_kalter <- function(){
-  return( FALSE )
+neonatal_meningitis_kalter <- function( fever, bulging_fontanelle, convulsions, lethargic, unconscious ){
+  return( fever & (bulging_fontanelle | convulsions) & (lethargic | unconscious) )
 }
 
-neonatal_meningitis_kalter <- function(){
-  return( FALSE )
+neonatal_diarrhea_kalter <- function( diarrhea, number_stools ){
+  return( diarrhea & (number_stools > 4) )
 }
 
-neonatal_diarrhea_kalter <- function(){
-  return( FALSE )
+neonatal_pneumonia_kalter <- function( days_difficulty_breathing, days_fast_breathing, chest_indrawing, 
+                                       noisy_breathing, baby_cry, stop_ability_to_cry ){
+  return( ( ( days_fast_breathing >= 1 ) | ( days_difficulty_breathing >= 1) ) &
+          ( chest_indrawing + noisy_breathing + (!baby_cry | stop_ability_to_cry) > 2 ) )
 }
 
-neonatal_pneumonia_kalter <- function(){
-  return( FALSE )
+neonatal_possible_diarrhea_kalter <- function( diarrhea, fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
+                                               stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing){
+  return( diarrhea & sepsis_kalter(fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
+                                   stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing) )
 }
 
-neonatal_possible_diarrhea_kalter <- function(){
-  return( FALSE )
+neonatal_possible_pneumonia_kalter <- function( difficulty_breathing, fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
+                                                stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing){
+  return( difficulty_breathing & sepsis_kalter(fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
+                                               stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing) )
 }
 
-neonatal_possible_pneumonia_kalter <- function(){
-  return( FALSE )
+sepsis_kalter <- function( fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
+                           stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing){
+  return( (fever | cold_touch) |
+          ( (fever | cold_touch) + (!suckle_feed | stop_suckle) + convulsions + vomit + stop_ability_to_cry + 
+              (lethargic | unconscious) + (chest_indrawing | noisy_breathing) > 2 ) )
 }
 
-sepsis_kalter <- function(){
-  return( FALSE )
+neonatal_jaundice_kalter <- function( jaundice, stop_suckle, lethargic, unconscious, fever ){
+  return( jaundice & ( stop_suckle | lethargic | unconscious ) & !fever )
 }
 
-neonatal_jaundice_kalter <- function(){
-  return( FALSE )
+neonatal_hemorrhagic_kalter <- function( bled_anywhere, fever, cold_touch ){
+  return( bled_anywhere & (!fever | cold_touch) )
 }
 
-neonatal_hemorrhagic_kalter <- function(){
-  return( FALSE )
+neonatal_sudden_kalter <- function( die_suddenly, appear_healthy ){
+  return( die_suddenly | appear_healthy )
 }
 
-neonatal_sudden_kalter <- function(){
-  return( FALSE )
-}
-
-preterm_kalter <- function(){
-  return( FALSE )
+preterm_kalter <- function( months_pregnancy ){
+  return( months_pregnancy < 8 )
 }
 
 # NEONATE causes of death according to Liu
