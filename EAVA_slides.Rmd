@@ -1,10 +1,11 @@
 ---
-title: "EAVA results"
+title: "VIDA results"
 author: "DataBrew LLC"
-date: "5/4/2022"
+date: "5/18/2022"
 output: 
   ioslides_presentation:
     widescreen: true
+    transition: 0
 ---
 
 ```{r setup, include=FALSE}
@@ -85,7 +86,7 @@ diarrhea_table <- function( df ){
 
 ```
 
-# Overview
+# EAVA Overview
 
 ## EAVA
 
@@ -97,7 +98,36 @@ and
 
 > Liu et al., [Deriving causes of child mortality by re–analyzing national verbal autopsy data applying a standardized computer algorithm in Uganda, Rwanda and Ghana](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4467513/), J Glob Health. 2015 Jun; 5(1): 010414
 
-## Kalter hierarchy 
+## Kalter hierarchy for neonates
+
+<div style="float: left; width: 50%;">
+<ol start="1">
+<li>Neonatal tetanus</li>
+<li>Congenital malformation</li>
+<li>Birth asphyxia</li>
+<li>Birth injury</li>
+<li>Preterm delivery with respiratory distress syndrome</li>
+<li>Meningitis</li>
+<li>Diarrhea</li>
+<li>Pneumonia</li>
+
+</ol>
+</div>
+
+<div style="float: right; width: 50%;">
+<ol start="9">
+<li>Possible diarrhea</li>
+<li>Possible pneumonia</li>
+<li>Sepsis</li>
+<li>Neonatal jaundice</li>
+<li>Neonatal hemorrhagic syndrome</li>
+<li>Sudden unexplained death</li>
+<li>Preterm delivery</li>
+<li>Unspecified</li>
+</ol>
+</div>
+
+## Kalter hierarchy for children
 
 <div style="float: left; width: 50%;">
 <ol start="1">
@@ -127,24 +157,56 @@ and
 </ol>
 </div>
 
-## Liu hierarchy
+## Liu hierarchy for neonates
 
-1. Injury
-2. Measles
-3. Meningitis
-4. Malaria
-5. AIDS
-6. Diarrhea
-7. Acute Respiratory Infection
-8. Possible pneumonia
-9. Possible diarrhea
-10. Unspecified
+<div style="float: left; width: 50%;">
+<ol start="1">
+<li>Neonatal tetanus</li>
+<li>Congenital abnormality</li>
+<li>Birth asphyxia</li>
+<li>Birth injury</li>
+<li>Neonatal diarrhea</li>
+<li>Neonatal Acute Respiratory Infection (ARI)</li>
+</ol>
+</div> 
+
+<div style="float: right; width: 50%;">
+<ol start="7">
+<li>Neonatal possible pneumonia</li>
+<li>Neonatal possible diarrhea</li>
+<li>Prematurity / low birth weight</li>
+<li>Other infections</li>
+<li>Unspecified</li>
+</ol>
+</div>
+
+## Liu hierarchy for children
+
+<div style="float: left; width: 50%;">
+<ol start="1">
+<li>Injury</li>
+<li>Measles</li>
+<li>Meningitis</li>
+<li>Malaria</li>
+<li>AIDS</li>
+</ol>
+</div> 
+
+<div style="float: right; width: 50%;">
+<ol start="6">
+<li>Diarrhea</li>
+<li>Acute Respiratory Infection (ARI)</li>
+<li>Possible pneumonia</li>
+<li>Possible diarrhea</li>
+<li>Unspecified</li>
+</ol>
+</div>
     
 # Mali results
 
 ## CHAMPS_Verbal_Autopsy_Form_results
 
-Overall diarrhea incidence based on answers to the standardized questions :
+Overall diarrhea incidence, based on answers to the standardized questions:
 
 > Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
 
@@ -153,91 +215,116 @@ df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_results_babel.csv", s
 diarrhea_table( df )
 ```
 
-## CHAMPS_Verbal_Autopsy_Form_results
+## Kalter for children
 
 ```{r}
-# df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_results_babel.csv", show_col_types = FALSE)
 causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
-## CHAMPS_Verbal_Autopsy_Form_results
+## Kalter for neonates
 
 ```{r}
 print_causes( causes, age_group = "Neonate" )
 ```
 
-## CHAMPS_Verbal_Autopsy_Form_results
+## Liu for children
 
 ```{r}
-df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_results_babel.csv", show_col_types = FALSE)
 causes <- get_causes(df, format="champs2", algo="liu")
 print_causes( causes )
 ```
 
 ## CHAMPS_Verbal_Autopsy_Form_v2_04_1_results
+
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
 
 ```{r}
 df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_1_results_babel.csv", show_col_types = FALSE)
+diarrhea_table( df )
+```
+
+## Kalter for children
+
+```{r}
 causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
-## CHAMPS_Verbal_Autopsy_Form_v2_04_1_results
+## Kalter for neonates
 
 ```{r}
 print_causes( causes, age_group = "Neonate" )
 ```
 
-## CHAMPS_Verbal_Autopsy_Form_v2_04_1_results
+## Liu for children
 
 ```{r}
-df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_1_results_babel.csv", show_col_types = FALSE)
 causes <- get_causes(df, format="champs2", algo="liu")
 print_causes( causes )
 ```
 
 ## CHAMPS_Verbal_Autopsy_Form_v2_04_results
 
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
 ```{r}
 df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_results_babel.csv", show_col_types = FALSE)
+diarrhea_table( df )
+```
+
+## Kalter for children
+
+```{r}
 causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
-## CHAMPS_Verbal_Autopsy_Form_v2_04_results
+## Kalter for neonates
 
 ```{r}
 print_causes( causes, age_group = "Neonate" )
 ```
 
-## CHAMPS_Verbal_Autopsy_Form_v2_04_results
+## Liu for children
 
 ```{r}
-df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_results_babel.csv", show_col_types = FALSE)
 causes <- get_causes(df, format="champs2", algo="liu")
 print_causes( causes )
 ```
 
 ## VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018
 
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
 ```{r}
 df <- read_csv("data/mali_babel/VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="champs1", algo="kalter")
+diarrhea_table( df )
+```
+
+## Kalter for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
-## VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018
+## Kalter for neonates
 
 ```{r}
 print_causes( causes, age_group = "Neonate" )
 ```
 
-## VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018
+## Liu for children
 
 ```{r}
-df <- read_csv("data/mali_babel/VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="champs1", algo="liu")
+causes <- get_causes(df, format="champs2", algo="liu")
 print_causes( causes )
 ```
 
@@ -245,96 +332,186 @@ print_causes( causes )
 
 ## bn_hdss/VA_Child_WHO2016
 
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
 ```{r}
 df <- read_csv("data/gambia_babel/bn_hdss/VA_Child_WHO2016_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c16", algo="kalter")
+diarrhea_table( df )
+```
+
+## Kalter for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
-## bn_hdss/VA_Child_WHO2016
+## Kalter for neonates
 
 ```{r}
-df <- read_csv("data/gambia_babel/bn_hdss/VA_Child_WHO2016_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c16", algo="liu")
+print_causes( causes, age_group = "Neonate" )
+```
+
+## Liu for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="liu")
 print_causes( causes )
 ```
 
 ## bn_hdss/VA_ChildForm_WHO2012
 
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
 ```{r}
 df <- read_csv("data/gambia_babel/bn_hdss/VA_ChildForm_WHO2012_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c12_16", algo="kalter")
+diarrhea_table( df )
+```
+
+## Kalter for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
-## bn_hdss/VA_ChildForm_WHO2012
+## Kalter for neonates
 
 ```{r}
-df <- read_csv("data/gambia_babel/bn_hdss/VA_ChildForm_WHO2012_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c12_16", algo="liu")
+print_causes( causes, age_group = "Neonate" )
+```
+
+## Liu for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="liu")
 print_causes( causes )
 ```
 
 ## bs_hdss/VA_Child_Indepth_2008-2012_clean duration
 
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
 ```{r}
 df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_Indepth_2008-2012_clean duration_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c08_12", algo="kalter")
+diarrhea_table( df )
+```
+
+## Kalter for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
-## bs_hdss/VA_Child_Indepth_2008-2012_clean duration
+## Kalter for neonates
 
 ```{r}
-df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_Indepth_2008-2012_clean duration_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c08_12", algo="liu")
+print_causes( causes, age_group = "Neonate" )
+```
+
+## Liu for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="liu")
 print_causes( causes )
 ```
 
 ## bs_hdss/VA_Child_Indepth_2008-2012
 
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
 ```{r}
 df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_Indepth_2008-2012_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c08_12", algo="kalter")
+diarrhea_table( df )
+```
+
+## Kalter for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
-## bs_hdss/VA_Child_Indepth_2008-2012
+## Kalter for neonates
 
 ```{r}
-df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_Indepth_2008-2012_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c08_12", algo="liu")
+print_causes( causes, age_group = "Neonate" )
+```
+
+## Liu for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="liu")
 print_causes( causes )
 ```
 
 ## bs_hdss/VA_Child_WHO2012-mid 2016
 
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
 ```{r}
 df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2012-mid 2016_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c12_16", algo="kalter")
+diarrhea_table( df )
+```
+
+## Kalter for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
-## bs_hdss/VA_Child_WHO2012-mid 2016
+## Kalter for neonates
 
 ```{r}
-df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2012-mid 2016_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c12_16", algo="liu")
+print_causes( causes, age_group = "Neonate" )
+```
+
+## Liu for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="liu")
 print_causes( causes )
 ```
 
 ## bs_hdss/VA_Child_WHO2016
 
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
 ```{r}
 df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2016_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c16", algo="kalter")
+diarrhea_table( df )
+```
+
+## Kalter for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
-## bs_hdss/VA_Child_WHO2016
+## Kalter for neonates
 
 ```{r}
-df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2016_babel.csv", show_col_types = FALSE)
-causes <- get_causes(df, format="c16", algo="liu")
+print_causes( causes, age_group = "Neonate" )
+```
+
+## Liu for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="liu")
 print_causes( causes )
 ```

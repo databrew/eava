@@ -26,7 +26,7 @@ supported_formats <- c("champs1", "champs2", "champs3", "child_mali",
 get_causes <- function(babel_data, format, algo = "kalter") {
   
   question_names <<- names( babel_data )
-  
+  current_row <<- 1
   # check availability of certain indicators -- avoids errors when trying to access nonexistent columns by name 
   # depends on format, not on responses for an individual decedent, so precedes response-dependent functions
   # (intentionally global for easy access in other EAVA functions!)
@@ -457,8 +457,12 @@ fever_duration <- function(responses, format) {
                            "core", "core_2", "va_4_weeks_to_59_months", "who2007", "who2007_2", 
                            "who2010", "who2010_2", "who2012_2", "who2016") ){ 
     # days_fever is exactly what the name indicates
-    if( !is.na( responses$days_fever) & !is.na(as.numeric(responses$days_fever))){
-      return( as.numeric(responses$days_fever) )
+    if( "days_fever" %in% question_names ){
+      if( !is.na( responses$days_fever) & !is.na(as.numeric(responses$days_fever))){
+        return( as.numeric(responses$days_fever) )
+      } else{
+        return(0)
+      } 
     } else{
       return(0)
     }
@@ -496,8 +500,12 @@ rash_duration <- function(responses, format) {
                            "core_2", "va_4_weeks_to_59_months", "who2007_2", 
                            "who2010_2", "who2012_2", "who2016")  ){
     # days_rash is exactly what the name indicates
-    if( !is.na(responses$days_rash) & !is.na(as.numeric(responses$days_rash)) ){
-      return(as.numeric(responses$days_rash))
+    if( "days_rash" %in% question_names ){
+      if( !is.na(responses$days_rash) & !is.na(as.numeric(responses$days_rash)) ){
+        return(as.numeric(responses$days_rash))
+      } else{
+        return(0)
+      }
     } else{
       return(0)
     }
@@ -535,8 +543,12 @@ cough_duration <- function(responses, format) {
                            "core", "core_2", "va_4_weeks_to_59_months", "who2007", "who2007_2", 
                            "who2010", "who2010_2", "who2012_2", "who2016") ){
     # days_cough is exactly what the name indicates
-    if( !is.na( responses$days_cough) & !is.na(as.numeric(responses$days_cough)) ){
-      return(as.numeric(responses$days_cough))
+    if( "days_cough" %in% question_names ){
+      if( !is.na( responses$days_cough) & !is.na(as.numeric(responses$days_cough)) ){
+        return(as.numeric(responses$days_cough))
+      } else{
+        return(0)
+      }
     } else{
       return(0)
     }
@@ -574,8 +586,12 @@ diarrhea_duration <- function(responses, format) {
                            "core", "core_2", "va_4_weeks_to_59_months", "who2007", "who2007_2", 
                            "who2010", "who2010_2", "who2012_2", "who2016") ){
     # days_diarrhea is exactly what the name indicates
-    if( !is.na( responses$days_diarrhea) & !is.na(as.numeric(responses$days_diarrhea)) ){
-      return( as.numeric(responses$days_diarrhea) )
+    if( "days_diarrhea" %in% question_names ){
+      if( !is.na( responses$days_diarrhea) & !is.na(as.numeric(responses$days_diarrhea)) ){
+        return( as.numeric(responses$days_diarrhea) )
+      } else{
+        return(0)
+      }
     } else{
       return(0)
     }
@@ -612,8 +628,12 @@ fast_breathing_duration <- function(responses, format) {
   } else if( format %in% c("c16", "c2016", "champs1", "champs2", "champs3", "child_mali", 
                            "core", "va_4_weeks_to_59_months", "who2016") ){
     # days_fast_breathing is exactly what the name indicates
-    if( !is.na(responses$days_fast_breathing) & !is.na(as.numeric(responses$days_fast_breathing)) ){
-      return( as.numeric(responses$days_fast_breathing) )
+    if( "days_fast_breathing" %in% question_names ){
+      if( !is.na(responses$days_fast_breathing) & !is.na(as.numeric(responses$days_fast_breathing)) ){
+        return( as.numeric(responses$days_fast_breathing) )
+      } else{
+        return(0)
+      }
     } else{
       return(0)
     }
