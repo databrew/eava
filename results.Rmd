@@ -261,10 +261,16 @@ df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_1_results_babel
 diarrhea_table( df )
 ```
 
-## Kalter for children
+## Age group breakdown 
 
 ```{r}
 causes <- get_causes(df, format="champs2", algo="kalter")
+age_group_table( causes )
+```
+
+## Kalter for children
+
+```{r}
 print_causes( causes )
 ```
 
@@ -292,10 +298,16 @@ df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_results_babel.c
 diarrhea_table( df )
 ```
 
-## Kalter for children
+## Age group breakdown 
 
 ```{r}
 causes <- get_causes(df, format="champs2", algo="kalter")
+age_group_table( causes )
+```
+
+## Kalter for children
+
+```{r}
 print_causes( causes )
 ```
 
@@ -323,10 +335,16 @@ df <- read_csv("data/mali_babel/VA_Death_of_a_child_under_4_weeks_to_59_months_r
 diarrhea_table( df )
 ```
 
+## Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="champs1", algo="kalter")
+age_group_table( causes )
+```
+
 ## Kalter for children
 
 ```{r}
-causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
@@ -339,7 +357,7 @@ print_causes( causes, age_group = "Neonate" )
 ## Liu for children
 
 ```{r}
-causes <- get_causes(df, format="champs2", algo="liu")
+causes <- get_causes(df, format="champs1", algo="liu")
 print_causes( causes )
 ```
 
@@ -356,10 +374,16 @@ df <- read_csv("data/gambia_babel/bn_hdss/VA_Child_WHO2016_babel.csv", show_col_
 diarrhea_table( df )
 ```
 
+## Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="c16", algo="kalter")
+age_group_table( causes )
+```
+
 ## Kalter for children
 
 ```{r}
-causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
@@ -372,7 +396,7 @@ print_causes( causes, age_group = "Neonate" )
 ## Liu for children
 
 ```{r}
-causes <- get_causes(df, format="champs2", algo="liu")
+causes <- get_causes(df, format="c16", algo="liu")
 print_causes( causes )
 ```
 
@@ -387,10 +411,16 @@ df <- read_csv("data/gambia_babel/bn_hdss/VA_ChildForm_WHO2012_babel.csv", show_
 diarrhea_table( df )
 ```
 
+## Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="c12_16", algo="kalter")
+age_group_table( causes )
+```
+
 ## Kalter for children
 
 ```{r}
-causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
@@ -403,7 +433,7 @@ print_causes( causes, age_group = "Neonate" )
 ## Liu for children
 
 ```{r}
-causes <- get_causes(df, format="champs2", algo="liu")
+causes <- get_causes(df, format="c12_16", algo="liu")
 print_causes( causes )
 ```
 
@@ -418,10 +448,16 @@ df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_Indepth_2008-2012_clean durat
 diarrhea_table( df )
 ```
 
+## Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="c08_12", algo="kalter")
+age_group_table( causes )
+```
+
 ## Kalter for children
 
 ```{r}
-causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
@@ -434,7 +470,7 @@ print_causes( causes, age_group = "Neonate" )
 ## Liu for children
 
 ```{r}
-causes <- get_causes(df, format="champs2", algo="liu")
+causes <- get_causes(df, format="c08_12", algo="liu")
 print_causes( causes )
 ```
 
@@ -449,10 +485,16 @@ df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_Indepth_2008-2012_babel.csv",
 diarrhea_table( df )
 ```
 
+## Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="c08_12", algo="kalter")
+age_group_table( causes )
+```
+
 ## Kalter for children
 
 ```{r}
-causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
@@ -465,7 +507,7 @@ print_causes( causes, age_group = "Neonate" )
 ## Liu for children
 
 ```{r}
-causes <- get_causes(df, format="champs2", algo="liu")
+causes <- get_causes(df, format="c08_12", algo="liu")
 print_causes( causes )
 ```
 
@@ -480,10 +522,16 @@ df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2012-mid 2016_babel.csv", 
 diarrhea_table( df )
 ```
 
+## Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="c12_16", algo="kalter")
+age_group_table( causes )
+```
+
 ## Kalter for children
 
 ```{r}
-causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
@@ -496,7 +544,7 @@ print_causes( causes, age_group = "Neonate" )
 ## Liu for children
 
 ```{r}
-causes <- get_causes(df, format="champs2", algo="liu")
+causes <- get_causes(df, format="c12_16", algo="liu")
 print_causes( causes )
 ```
 
@@ -511,10 +559,16 @@ df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2016_babel.csv", show_col_
 diarrhea_table( df )
 ```
 
+## Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="c16", algo="kalter")
+age_group_table( causes )
+```
+
 ## Kalter for children
 
 ```{r}
-causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
@@ -527,6 +581,6 @@ print_causes( causes, age_group = "Neonate" )
 ## Liu for children
 
 ```{r}
-causes <- get_causes(df, format="champs2", algo="liu")
+causes <- get_causes(df, format="c16", algo="liu")
 print_causes( causes )
 ```
