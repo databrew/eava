@@ -64,7 +64,7 @@ print_causes <- function( causes, age_group="Child" ){
 tally_causes( clean_causes( causes ), age_group ) %>%
     rename( "Possible comorbidities" = Comorbidities) %>% 
     regulartable() %>% 
-    set_caption( paste0("Causes of death for ", ifelse(age_group=="Child", "children", "neonates"))) %>%
+    # set_caption( paste0("Causes of death for ", ifelse(age_group=="Child", "children", "neonates"))) %>%
     theme_zebra() %>% 
     autofit()
 }
@@ -74,6 +74,8 @@ diarrhea_table <- function( df ){
   tab <- as.data.frame( table( df$diarrhea, useNA = "ifany" ) )
   colnames( tab ) <- c("Response", "Count")
   tab <- tab %>%
+    mutate( Response = as.character(Response)) %>%
+    replace_na( list(Response = "NA")) %>%
     mutate( Response = recode_factor(.x = Response,
                                      "dk" = "Don't know",
                                      "no" = "No",
@@ -82,6 +84,12 @@ diarrhea_table <- function( df ){
     mutate( Percentage = paste0( round(100*Count / sum(Count)), "%" ) ) 
   regulartable(tab) %>% align(j=2:3, align="right", part="all")
   # } 
+}
+
+age_group_table <- function( causes ){
+  tab <- as.data.frame( table( causes$age_group ) )
+  colnames( tab ) <- c("Age group", "Count")
+  regulartable(tab) 
 }
 
 ```
@@ -213,12 +221,19 @@ Overall diarrhea incidence, based on answers to the standardized questions:
 ```{r}
 df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_results_babel.csv", show_col_types = FALSE)
 diarrhea_table( df )
+
+```
+
+## Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="kalter")
+age_group_table( causes )
 ```
 
 ## Kalter for children
 
 ```{r}
-causes <- get_causes(df, format="champs2", algo="kalter")
 print_causes( causes )
 ```
 
