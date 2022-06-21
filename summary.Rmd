@@ -2,11 +2,17 @@
 title: "Expert Algorithms for Verbal Autopsy and the VIDA project"
 author: "DataBrew LLC"
 date: "`r format(Sys.time(), '%d %B %Y')`"
-output: 
+output:
   html_document:
-    toc: true
+    toc: yes
     toc_depth: 3
-bibliography: eava.bib 
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+  word_document:
+    toc: yes
+    toc_depth: '3'
+bibliography: eava.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -34,84 +40,57 @@ thus far are as follows:
 
 ### Kalter hierarchy for neonates
 
-<div style="float: left; width: 50%;">
-<ol start="1">
-<li>Neonatal tetanus</li>
-<li>Congenital malformation</li>
-<li>Birth asphyxia</li>
-<li>Birth injury</li>
-<li>Preterm delivery with respiratory distress syndrome</li>
-<li>Meningitis</li>
-<li>Diarrhea</li>
-<li>Pneumonia</li>
-
-</ol>
-</div>
-
-<div style="float: right; width: 50%;">
-<ol start="9">
-<li>Possible diarrhea</li>
-<li>Possible pneumonia</li>
-<li>Sepsis</li>
-<li>Neonatal jaundice</li>
-<li>Neonatal hemorrhagic syndrome</li>
-<li>Sudden unexplained death</li>
-<li>Preterm delivery</li>
-<li>Unspecified</li>
-</ol>
-</div>
+1. Neonatal tetanus 
+2. Congenital malformation 
+3. Birth asphyxia 
+4. Birth injury 
+5. Preterm delivery with respiratory distress syndrome 
+6. Meningitis 
+7. Diarrhea 
+8. Pneumonia 
+9. Possible diarrhea 
+10. Possible pneumonia 
+11. Sepsis 
+12. Neonatal jaundice 
+13. Neonatal hemorrhagic syndrome 
+14. Sudden unexplained death 
+15. Preterm delivery 
+16. Unspecified 
 
 ### Kalter hierarchy for children
 
-<div style="float: left; width: 50%;">
-<ol start="1">
-<li>Injury</li>
-<li>AIDS</li>
-<li>Malnutrition (underlying)</li>
-<li>Measles</li>
-<li>Meningitis</li>
-<li>Dysentery</li>
-<li>Diarrhea</li>
-<li>Pertussis</li>
-<li>Pneumonia</li>
-</ol>
-</div>
-
-<div style="float: right; width: 50%;">
-<ol start="10">
-<li>Malaria</li>
-<li>Possible dysentery</li>
-<li>Possible diarrhea</li>
-<li>Possible pneumonia</li>
-<li>Hemorrhagic fever</li>
-<li>Other infection</li>
-<li>Possible malaria</li>
-<li>Malnutrition</li>
-<li>Unspecified</li>
-</ol>
-</div>
+1. Injury 
+2. AIDS 
+3. Malnutrition (underlying) 
+4. Measles 
+5. Meningitis 
+6. Dysentery 
+7. Diarrhea 
+8. Pertussis 
+9. Pneumonia 
+10. Malaria 
+11. Possible dysentery 
+12. Possible diarrhea 
+13. Possible pneumonia 
+14. Hemorrhagic fever 
+15. Other infection 
+16. Possible malaria 
+17. Malnutrition 
+18. Unspecified 
 
 ### Liu hierarchy for children
 
-<div style="float: left; width: 50%;">
-<ol start="1">
-<li>Injury</li>
-<li>Measles</li>
-<li>Meningitis</li>
-<li>Malaria</li>
-<li>AIDS</li>
-</ol>
-</div> 
+1. Injury 
+2. Measles 
+3. Meningitis 
+4. Malaria 
+5. AIDS 
+6. Diarrhea 
+7. Acute Respiratory Infection (ARI) 
+8. Possible pneumonia 
+9. Possible diarrhea 
+10. Unspecified 
 
-<div style="float: right; width: 50%;">
-<ol start="6">
-<li>Diarrhea</li>
-<li>Acute Respiratory Infection (ARI)</li>
-<li>Possible pneumonia</li>
-<li>Possible diarrhea</li>
-<li>Unspecified</li>
-</ol>
-</div>
 
 ## Implementation challenges
 
@@ -272,7 +251,7 @@ for(i in 1:length(gv)){
   available <- bind_rows( available, 
                       data.frame( "Variable" = unlist(strsplit(gv[i],"_available")), Available=get(gv[i])) )
 }
-regulartable( available )
+regulartable( available ) %>% autofit()
 
 ```
 
