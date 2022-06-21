@@ -2,6 +2,7 @@
 *.html
 *.tex
 *.pdf
+*.txt
 *.docx
 *.png
 *.xlsx

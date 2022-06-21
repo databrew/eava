@@ -1,0 +1,1145 @@
+---
+title: "Expert Algorithms for Verbal Autopsy and the VIDA project"
+author: "DataBrew LLC"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+bibliography: eava.bib 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      message = FALSE,
+                      warning = FALSE)
+library(tidyverse)
+library(flextable)
+library(knitr)
+library(kableExtra)
+source("eava.R")
+```
+
+# Introduction
+
+## Expert Algorithms for Verbal Autopsy 
+
+To determine causes of death from available verbal autopsy (VA) data, we have implemented several Expert Algorithms for Verbal
+Autopsy (EAVA), following the details provided in the supplements to @kalter and @liu. As discussed in these papers,
+there are separate algorithms for neonatal decedents (infants under 1 month old at death) and for child decedents (older than 
+1 month at time of death). In each case, the algorithms proceed through a hierarchy of conditions to determine the cause of death;
+the first condition whose criteria are satisfied is determined to be the primary cause of death, and the remaining conditions 
+whose criteria are satisfied are identified as possible comorbidities. The specific hierarchies for the algorithms implemented 
+thus far are as follows:
+
+### Kalter hierarchy for neonates
+
+<div style="float: left; width: 50%;">
+<ol start="1">
+<li>Neonatal tetanus</li>
+<li>Congenital malformation</li>
+<li>Birth asphyxia</li>
+<li>Birth injury</li>
+<li>Preterm delivery with respiratory distress syndrome</li>
+<li>Meningitis</li>
+<li>Diarrhea</li>
+<li>Pneumonia</li>
+
+</ol>
+</div>
+
+<div style="float: right; width: 50%;">
+<ol start="9">
+<li>Possible diarrhea</li>
+<li>Possible pneumonia</li>
+<li>Sepsis</li>
+<li>Neonatal jaundice</li>
+<li>Neonatal hemorrhagic syndrome</li>
+<li>Sudden unexplained death</li>
+<li>Preterm delivery</li>
+<li>Unspecified</li>
+</ol>
+</div>
+
+### Kalter hierarchy for children
+
+<div style="float: left; width: 50%;">
+<ol start="1">
+<li>Injury</li>
+<li>AIDS</li>
+<li>Malnutrition (underlying)</li>
+<li>Measles</li>
+<li>Meningitis</li>
+<li>Dysentery</li>
+<li>Diarrhea</li>
+<li>Pertussis</li>
+<li>Pneumonia</li>
+</ol>
+</div>
+
+<div style="float: right; width: 50%;">
+<ol start="10">
+<li>Malaria</li>
+<li>Possible dysentery</li>
+<li>Possible diarrhea</li>
+<li>Possible pneumonia</li>
+<li>Hemorrhagic fever</li>
+<li>Other infection</li>
+<li>Possible malaria</li>
+<li>Malnutrition</li>
+<li>Unspecified</li>
+</ol>
+</div>
+
+### Liu hierarchy for children
+
+<div style="float: left; width: 50%;">
+<ol start="1">
+<li>Injury</li>
+<li>Measles</li>
+<li>Meningitis</li>
+<li>Malaria</li>
+<li>AIDS</li>
+</ol>
+</div> 
+
+<div style="float: right; width: 50%;">
+<ol start="6">
+<li>Diarrhea</li>
+<li>Acute Respiratory Infection (ARI)</li>
+<li>Possible pneumonia</li>
+<li>Possible diarrhea</li>
+<li>Unspecified</li>
+</ol>
+</div>
+
+## Implementation challenges
+
+VA data is notoriously hard to analyze; survey instruments vary from place to place and over time, and the data 
+collected varies considerably in quality and completeness. These issues complicate the application of EAVA to
+VA data, despite the simplicity of the hierarchies outlined above. For instance, here are the criteria for
+diarrhea in children according to @kalter:
+
+> More frequent loose or liquid stools than usual AND more than 4 stools on the day with the most stools AND no blood in the stools 
+
+OR
+
+> More frequent loose or liquid stools than usual for more than 14 days AND no blood in stools
+
+These criteria can only be checked if the relevant data are available; if there is no information about the duration of 
+the child's diarrhea or number of stools, then the algorithm cannot justify identifying diarrhea as a cause of death or 
+possible comorbidity.  Here is another example from the @kalter specification: a child decedent is deemed to
+have suffered from underlying malnutrition if
+
+> Limbs became very thin during the fatal illness OR had swollen legs or feet during the illness
+
+AND
+
+> One of these was the first symptom of the illness
+
+While some of the VA datasets contain information about thin limbs or swollen appendages, we cannot use the 
+available data to check this last condition. To mediate between these specific requirements and the 
+shortcomings in our VA data, we have necessarily taken some liberties with our EAVA implementations. All of our 
+code is [publicly available](https://github.com/databrew/eava), however, so anyone interested can inspect it 
+to see exactly what has been done.
+
+## Standardization of VA data
+
+One of the major difficulties in analyzing VA data stems from the use of different survey instruments; these yield datasets
+with wildly different names and numbers of variables. To mitigate this issue, we rely on the previously developed
+open source package `vida` to translate each VA dataset into a standard `babel` format with standard variable names. 
+Once this translation has been done, we can apply our EAVA implementations to the standardized data. A shortcoming 
+of this approach is that newer survey instruments cannot yet be mapped to `babel` format. 
+
+## InterVA
+
+One of the most well-known algorithms for VA analysis is InterVA, an algorithm pioneered by Peter Byass and implemented
+in various forms over the years (InterVA4, InterVA5, openVA versions). While InterVA has performed reasonably well on particular
+datasets (add references!), it has rigid input requirements that prohibit its application to the VA data that we have.
+In addition, InterVA is an opaque algorithm that depends on mysteriously tuned conditional probabilities; an InterVA user
+cannot interrogate its cause of death findings, making its conclusions difficult to interpret. These were our
+motivations for implementing open source expert algorithms: we needed algorithms that we could apply to a variety of VA datasets, 
+and we wanted results that we could easily understand.
+
+
+```{r}
+# causes is a data.frame created by get_causes; 3rd column contains cause(s) of death determined by EAVA
+# 1st entry is primary cause, others are possible comborbidities
+
+clean_causes <- function( causes ){
+  primary <- character()
+  comorbidities <- character()
+  for(i in 1:nrow(causes)){
+    all <- unlist( strsplit( causes$causes[i], ", ", fixed = TRUE))
+    if( length( all ) == 1 ){
+      primary[i] <- all
+      comorbidities[i] <- NA
+    } else{
+      primary[i] <- all[1]
+      comorbidities[i] <- paste0( all[-1], collapse=", ")
+    }
+  }
+  return( causes %>% 
+            mutate( Primary=primary, Comorbidities = comorbidities ) %>% 
+            select(-causes) %>% 
+            rename("Age in days" = age_days, "Age group" = age_group) )
+  
+}
+
+tally_causes <- function( cleaned_causes, age_group ){
+
+  tallies <- cleaned_causes %>%
+    filter( `Age group` == age_group) %>%
+    group_by( Primary ) %>%
+    tally( name="Count") 
+
+  comorbid <-  cleaned_causes %>% 
+    filter( `Age group` == age_group) %>%
+    group_by(Primary) %>% 
+    drop_na(Comorbidities) %>%
+    summarize( Comorbidities = paste0( unique( unlist( strsplit( paste0(Comorbidities, collapse = ", "), ", ", fixed=TRUE))), collapse = ", "))
+
+  return( tallies %>% left_join( comorbid, by="Primary" ) %>% arrange( desc(Count) ) )
+}
+
+print_causes <- function( causes, age_group="Child" ){
+  
+tally_causes( clean_causes( causes ), age_group ) %>%
+    rename( "Possible comorbidities" = Comorbidities) %>% 
+    regulartable() %>% 
+    # set_caption( paste0("Causes of death for ", ifelse(age_group=="Child", "children", "neonates"))) %>%
+    theme_zebra() %>% 
+    autofit()
+}
+
+diarrhea_table <- function( df ){
+  # if( any( !is.na( df$diarrhea ) ) ){
+  tab <- as.data.frame( table( df$diarrhea, useNA = "ifany" ) )
+  colnames( tab ) <- c("Response", "Count")
+  tab <- tab %>%
+    mutate( Response = as.character(Response)) %>%
+    replace_na( list(Response = "NA")) %>%
+    mutate( Response = recode_factor(.x = Response,
+                                     "dk" = "Don't know",
+                                     "no" = "No",
+                                     "yes" = "Yes",
+                                     "Sum" = "Total")) %>%
+    mutate( Percentage = paste0( round(100*Count / sum(Count)), "%" ) ) 
+  regulartable(tab) %>% align(j=2:3, align="right", part="all")
+  # } 
+}
+
+age_group_table <- function( causes ){
+  tab <- as.data.frame( table( causes$age_group ) )
+  colnames( tab ) <- c("Age group", "Count")
+  regulartable(tab) 
+}
+
+```
+
+# Results 
+
+For each country, the name of each subsection is the name of the analyzed file (before `babel` translation).
+
+## Mali data
+
+### CHAMPS_Verbal_Autopsy_Form_results
+
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
+```{r}
+df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_results_babel.csv", show_col_types = FALSE)
+diarrhea_table( df )
+```
+
+#### Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="kalter")
+age_group_table( causes )
+```
+
+#### Available standardized variables
+
+This table is gross &mdash; it's just here as a reminder to discuss better ways to summarize available data per file.
+
+```{r}
+gv <- ls()[grep("_available", ls())]
+available <- data.frame( )
+for(i in 1:length(gv)){
+  available <- bind_rows( available, 
+                      data.frame( "Variable" = unlist(strsplit(gv[i],"_available")), Available=get(gv[i])) )
+}
+regulartable( available )
+
+```
+
+#### Kalter's EAVA for children
+
+```{r}
+print_causes( causes )
+```
+
+#### Kalter's EAVA for neonates
+
+```{r}
+print_causes( causes, age_group = "Neonate" )
+```
+
+#### Liu's EAVA for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="liu")
+print_causes( causes )
+```
+
+### CHAMPS_Verbal_Autopsy_Form_v2_04_1_results
+
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
+```{r}
+df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_1_results_babel.csv", show_col_types = FALSE)
+diarrhea_table( df )
+```
+
+#### Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="kalter")
+age_group_table( causes )
+```
+
+#### Kalter's EAVA for children
+
+```{r}
+print_causes( causes )
+```
+
+#### Kalter's EAVA for neonates
+
+```{r}
+print_causes( causes, age_group = "Neonate" )
+```
+
+#### Liu's EAVA for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="liu")
+print_causes( causes )
+```
+
+### CHAMPS_Verbal_Autopsy_Form_v2_04_results
+
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
+```{r}
+df <- read_csv("data/mali_babel/CHAMPS_Verbal_Autopsy_Form_v2_04_results_babel.csv", show_col_types = FALSE)
+diarrhea_table( df )
+```
+
+#### Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="kalter")
+age_group_table( causes )
+```
+
+#### Kalter's EAVA for children
+
+```{r}
+print_causes( causes )
+```
+
+#### Kalter's EAVA for neonates
+
+```{r}
+print_causes( causes, age_group = "Neonate" )
+```
+
+#### Liu's EAVA for children
+
+```{r}
+causes <- get_causes(df, format="champs2", algo="liu")
+print_causes( causes )
+```
+
+### VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018
+
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
+```{r}
+df <- read_csv("data/mali_babel/VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel.csv", show_col_types = FALSE)
+diarrhea_table( df )
+```
+
+#### Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="champs1", algo="kalter")
+age_group_table( causes )
+```
+
+#### Kalter's EAVA for children
+
+```{r}
+print_causes( causes )
+```
+
+#### Kalter's EAVA for neonates
+
+```{r}
+print_causes( causes, age_group = "Neonate" )
+```
+
+#### Liu's EAVA for children
+
+```{r}
+causes <- get_causes(df, format="champs1", algo="liu")
+print_causes( causes )
+```
+
+## Gambia results
+
+### bn_hdss/VA_Child_WHO2016
+
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
+```{r}
+df <- read_csv("data/gambia_babel/bn_hdss/VA_Child_WHO2016_babel.csv", show_col_types = FALSE)
+diarrhea_table( df )
+```
+
+#### Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="c16", algo="kalter")
+age_group_table( causes )
+```
+
+#### Kalter's EAVA for children
+
+```{r}
+print_causes( causes )
+```
+
+#### Kalter's EAVA for neonates
+
+```{r}
+print_causes( causes, age_group = "Neonate" )
+```
+
+#### Liu's EAVA for children
+
+```{r}
+causes <- get_causes(df, format="c16", algo="liu")
+print_causes( causes )
+```
+
+### bn_hdss/VA_ChildForm_WHO2012
+
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
+```{r}
+df <- read_csv("data/gambia_babel/bn_hdss/VA_ChildForm_WHO2012_babel.csv", show_col_types = FALSE)
+diarrhea_table( df )
+```
+
+#### Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="c12_16", algo="kalter")
+age_group_table( causes )
+```
+
+#### Kalter's EAVA for children
+
+```{r}
+print_causes( causes )
+```
+
+#### Kalter's EAVA for neonates
+
+```{r}
+print_causes( causes, age_group = "Neonate" )
+```
+
+#### Liu's EAVA for children
+
+```{r}
+causes <- get_causes(df, format="c12_16", algo="liu")
+print_causes( causes )
+```
+
+### bs_hdss/VA_Child_Indepth_2008-2012_clean duration
+
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
+```{r}
+df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_Indepth_2008-2012_clean duration_babel.csv", show_col_types = FALSE)
+diarrhea_table( df )
+```
+
+#### Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="c08_12", algo="kalter")
+age_group_table( causes )
+```
+
+#### Kalter's EAVA for children
+
+```{r}
+print_causes( causes )
+```
+
+#### Kalter's EAVA for neonates
+
+```{r}
+print_causes( causes, age_group = "Neonate" )
+```
+
+#### Liu's EAVA for children
+
+```{r}
+causes <- get_causes(df, format="c08_12", algo="liu")
+print_causes( causes )
+```
+
+### bs_hdss/VA_Child_Indepth_2008-2012
+
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
+```{r}
+df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_Indepth_2008-2012_babel.csv", show_col_types = FALSE)
+diarrhea_table( df )
+```
+
+#### Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="c08_12", algo="kalter")
+age_group_table( causes )
+```
+
+#### Kalter's EAVA for children
+
+```{r}
+print_causes( causes )
+```
+
+#### Kalter's EAVA for neonates
+
+```{r}
+print_causes( causes, age_group = "Neonate" )
+```
+
+#### Liu's EAVA for children
+
+```{r}
+causes <- get_causes(df, format="c08_12", algo="liu")
+print_causes( causes )
+```
+
+### bs_hdss/VA_Child_WHO2012-mid 2016
+
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
+```{r}
+df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2012-mid 2016_babel.csv", show_col_types = FALSE)
+diarrhea_table( df )
+```
+
+#### Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="c12_16", algo="kalter")
+age_group_table( causes )
+```
+
+#### Kalter's EAVA for children
+
+```{r}
+print_causes( causes )
+```
+
+#### Kalter's EAVA for neonates
+
+```{r}
+print_causes( causes, age_group = "Neonate" )
+```
+
+#### Liu's EAVA for children
+
+```{r}
+causes <- get_causes(df, format="c12_16", algo="liu")
+print_causes( causes )
+```
+
+### bs_hdss/VA_Child_WHO2016
+
+Overall diarrhea incidence, based on answers to the standardized questions:
+
+> Did the child have more frequent loose or liquid stools than usual? / Did the child have diarrhea?
+
+```{r}
+df <- read_csv("data/gambia_babel/bs_hdss/VA_Child_WHO2016_babel.csv", show_col_types = FALSE)
+diarrhea_table( df )
+```
+
+#### Age group breakdown 
+
+```{r}
+causes <- get_causes(df, format="c16", algo="kalter")
+age_group_table( causes )
+```
+
+#### Kalter's EAVA for children
+
+```{r}
+print_causes( causes )
+```
+
+#### Kalter's EAVA for neonates
+
+```{r}
+print_causes( causes, age_group = "Neonate" )
+```
+
+#### Liu's EAVA for children
+
+```{r}
+causes <- get_causes(df, format="c16", algo="liu")
+print_causes( causes )
+```
+
+# Implementations 
+
+## Kalter's EAVA for children
+
+```{r echo=TRUE, eval=FALSE}
+
+# Injury -----
+
+# Kalter :
+
+# Suffered from motor vehicle accident, fall, drowning, poisoning, venomous bite or sting, burn, violence or other injury
+# AND 
+# (Died 1 day or less after the injury AND the illness lasted 1 day or less) OR 
+# (Injury and No other VA diagnosis (except malnutrition allowed)) OR 
+# (Injury that was the first illness sign/symptom AND had VA other infection or fever))
+
+injury <- function( responses ){
+  questions <- c("injury_accident", "road_accident", "venomous_animal", "animal", "burn",
+                 "drown", "injury_fall", "other_injury", "poisoning", "assault")
+  questions <- questions[ which( questions %in% names(responses)) ]
+  answers <- responses %>% select( all_of(questions) ) 
+  if(any(!is.na(answers))) {
+    if (any(answers == "yes", na.rm = TRUE)) {
+      return(TRUE)
+    } else{
+      return(FALSE)
+    }
+  } else{ 
+    return(FALSE)
+  }
+}
+
+# CHILD causes of death according to Kalter -----
+
+# AIDS (Kalter) -----
+
+# (Swelling in the armpits OR a whitish rash inside the mouth/on the tongue)
+# AND
+# 3 or more of the following 6 signs: 
+# (limbs became very thin, protruding belly, more frequent loose/liquid stools than usual for more than 30 days, 
+# fever or a skin rash for more than 30 days, fast breathing, chest indrawing)
+
+aids_kalter <- function( armpits, rash_mouth, thin_limbs, protruding_abdomen, fast_breathing, 
+                  chest_indrawing, days_diarrhea, days_fever, days_rash ){
+  if( (armpits | rash_mouth) ){
+    signs <- thin_limbs + protruding_abdomen + fast_breathing + chest_indrawing + (days_diarrhea > 30) + (days_fever > 30) + (days_rash > 30) 
+    return( signs >= 3 )
+  } else{
+    return(FALSE)
+  }
+}
+
+# Malnutrition (underlying) (Kalter) -----
+
+# Limbs became very thin during the fatal illness OR had swollen legs or feet during the illness
+# AND
+# One of these was the first symptom of the illness
+
+underlying_malnutrition_kalter <- function( thin_limbs, swollen_legs_feet ){
+  return( thin_limbs | swollen_legs_feet )
+}
+
+# Measles (Kalter) -----
+
+# Child's age greater than or equal to 120 days 
+# AND 
+# rash for 3 or more days 
+# AND
+# fever for 3 or more days 
+# AND 
+# the rash started on the face
+
+measles_kalter <- function( age_days, days_rash, days_fever ){
+  return( (age_days > 120) & (days_rash >= 3) & (days_fever >= 3) )
+}
+
+# Meningitis (Kalter) -----
+
+# Fever AND (stiff neck OR bulging fontanelle)
+
+meningitis_kalter <- function( fever, stiff_neck, bulging_fontanelle ){
+  return( fever & ( stiff_neck | bulging_fontanelle ) )
+}
+
+# Dysentery (Kalter) -----
+
+# More frequent loose or liquid stools than usual AND more than 4 stools on the day with the most stools AND blood in the stools
+# OR
+# More frequent loose or liquid stools than usual for more than 14 days AND blood in the stools
+
+dysentery_kalter <- function( days_diarrhea, bloody_stool ){
+  return( (days_diarrhea > 14) & bloody_stool )
+}
+
+# Diarrhea (Kalter) -----
+
+# More frequent loose or liquid stools than usual AND more than 4 stools on the day with the most stools AND No blood in the stools
+# OR
+# More frequent loose or liquid stools than usual for more than 14 days AND No blood in stools
+
+diarrhea_kalter <- function( diarrhea, days_diarrhea, bloody_stool, number_stools ){
+  return( (diarrhea & (number_stools > 4) & !bloody_stool ) | 
+          ( (days_diarrhea > 14) & !bloody_stool ) )
+}
+
+# Pertussis (Kalter) -----
+
+# Cough more than 14 days AND 
+# (severe cough OR vomited after coughing OR stridor)
+
+pertussis_kalter <- function( days_cough, cough_severe_available, cough_severe, cough_vomit_available, cough_vomit ){
+  if( cough_severe_available & cough_vomit_available ){
+    return( (days_cough > 14) & (cough_severe | cough_vomit) )
+  } else if( cough_severe_available & !cough_vomit_available){
+    return( (days_cough > 14) & cough_severe ) 
+  } else if( !cough_severe_available & cough_vomit_available){
+    return( (days_cough > 14) & cough_vomit ) 
+  } else{ 
+    return( (days_cough > 14) )
+  }
+}
+
+# Pneumonia (Kalter) -----
+
+# (Cough more than 2 days OR difficult breathing more than 2 days)
+# AND
+# (Fast breathing more than 2 days OR chest indrawing OR grunting)
+
+pneumonia_kalter <- function( days_cough, days_difficulty_breathing, days_fast_breathing, chest_indrawing, noisy_breathing ){
+  return( ( (days_cough > 2) | (days_difficulty_breathing > 2)) & 
+            ( (days_fast_breathing > 2) | chest_indrawing | noisy_breathing ) )
+}
+
+# Malaria (Kalter) -----
+
+# Fever that continued till death AND was on and off in character AND No stiff neck AND 
+# No bulging fontanelle AND (pallor OR difficult breathing OR convulsions OR unconscious till death)
+# OR
+# Fever that continued till death AND was severe fever AND No stiff neck AND 
+# No bulging fontanelle AND (pallor OR convulsions OR unconscious till death)
+
+malaria_kalter <- function( fever_continue, fever_on_off, fever_severe, stiff_neck, bulging_fontanelle, 
+                     difficulty_breathing, convulsions, unconscious ) {
+  return( fever_continue & (fever_on_off | fever_severe) & !stiff_neck & !bulging_fontanelle & 
+            (difficulty_breathing | convulsions | unconscious) )
+}
+
+# Possible dysentery (Kalter) -----
+
+# More frequent loose or liquid stools than usual AND 
+# (fever OR convulsions OR unconscious up till death) AND 
+# blood in the stools AND 
+# No VA dysentery
+
+possible_dysentery_kalter <- function( diarrhea, fever, convulsions, unconscious, bloody_stool ){
+  return( diarrhea & (fever | convulsions | unconscious) & bloody_stool )
+}
+
+# Possible diarrhea (Kalter) -----
+
+# More frequent loose or liquid stools than usual AND 
+# (fever OR convulsions OR unconscious up till death) AND 
+# No blood in the stools AND 
+# No VA diarrhea
+
+possible_diarrhea_kalter <- function( diarrhea, fever, convulsions, unconscious, bloody_stool ){
+  return( diarrhea & (fever | convulsions | unconscious) & !bloody_stool )
+}
+
+# Possible pneumonia (Kalter) -----
+
+# (Cough or difficult breathing) OR (Fast breathing AND (chest indrawing OR stridor OR grunting OR wheezing))
+# AND
+# (Severe cough OR post–tussive vomiting OR fast breathing OR chest indrawing OR grunting OR stridor OR wheezing OR 
+# fever OR convulsions OR unconscious up till death) 
+# AND 
+# No VA Pertussis AND No VA pneumonia
+
+possible_pneumonia_kalter <- function( cough, difficulty_breathing, fast_breathing, chest_indrawing, noisy_breathing, 
+                                cough_severe, cough_vomit, fever, convulsions, unconscious ){
+  return( ( (cough | difficulty_breathing) | ( fast_breathing & (chest_indrawing | noisy_breathing) ) ) & 
+            ( cough_severe | cough_vomit | fast_breathing | chest_indrawing | noisy_breathing | fever | convulsions | unconscious ) )
+}
+
+# Hemorrhagic fever (Kalter) -----
+
+# Fever AND (bled from anywhere OR had areas of the skin that turned black)
+
+hemorrhagic_fever_kalter <- function( fever, bled_anywhere, skin_black ){
+  return( fever & (bled_anywhere | skin_black) )
+}
+
+# Other infection (Kalter) -----
+
+# Fever AND 
+# (rash on trunk, abdomen or everywhere OR convulsions OR unconscious up till death)
+
+other_infection_kalter <- function( fever, rash_trunk, convulsions, unconscious ){
+  return( fever & (rash_trunk | convulsions | unconscious) )
+}
+
+# Possible malaria (Kalter) -----
+
+# Fever AND No other VA infectious causes of death
+
+possible_malaria_kalter <- function( fever ){
+  return( fever )
+}
+
+# Malnutrition (Kalter) -----
+
+# Limbs became very thin during the fatal illness OR 
+# had swollen legs or feet during the illness
+
+malnutrition_kalter <- function( thin_limbs, swollen_legs_feet ){
+  return( thin_limbs | swollen_legs_feet )
+}
+
+```
+
+## Kalter's EAVA for neonates
+
+```{r echo=TRUE, eval=FALSE}
+
+# NEONATE causes of death according to Kalter
+
+# Neonatal tetanus (Kalter) -----
+
+# (Age 3–27 days at death AND convulsions or spasms)
+# AND EITHER 
+# ((Able to suckle normally during the first day of life and stopped being able to suckle) 
+# OR 
+# (cried within 5 minutes after birth and stopped being able to cry))
+
+neonatal_tetanus_kalter <- function( age_days, convulsions, suckle_feed, stop_suckle, 
+                                     cry_after_birth, baby_cry_after_birth, stop_ability_to_cry ){
+  return( ( (age_days >=3) & (age_days <= 27) & convulsions ) & 
+          ( ( suckle_feed & stop_suckle ) | ( (cry_after_birth | baby_cry_after_birth) & stop_ability_to_cry ) ) )
+}
+
+# Congenital malformation (Kalter) -----
+
+# Gross malformation present at birth
+
+malformation_kalter <- function( malformation ){
+  return( malformation )
+}
+
+# Birth asphyxia (Kalter) -----
+
+# Neonatal respiratory depression: (Did not cry within 5 minutes after birth OR did not breathe immediately after birth)
+# AND
+# Neonatal encephalopathy: (Not able to suckle normally in the first day of life OR convulsions/spasms OR lethargy) OR 0 days old at death
+
+asphyxia_kalter <- function( age_days, cry_after_birth, baby_cry_after_birth, baby_breathe_after_birth, 
+                             suckle_feed, convulsions, lethargic ){
+  return( ( !(cry_after_birth | baby_cry_after_birth) | !baby_breathe_after_birth ) &
+          ( !suckle_feed  | convulsions | lethargic | (age_days==0) ) )
+}
+
+# Birth injury (Kalter) -----
+
+# Bruises or signs of injury on the body at birth
+
+birth_injury_kalter <- function( bruises_injury, sign_injury_broken_bones ){
+  return( bruises_injury | sign_injury_broken_bones )
+}
+
+# Preterm delivery with respiratory distress syndrome (Kalter) -----
+
+# Pregnancy duration less than 9 months
+# AND
+# (Fast breathing starting on day 0 AND no fever AND no cold to touch)
+
+preterm_respiratory_distress_kalter <- function( months_pregnancy, fast_breathing, fever, cold_touch ){
+  return( ( months_pregnancy < 9 ) & ( fast_breathing & !fever & !cold_touch ) )
+}
+
+# Neonatal meningitis (Kalter) -----
+
+# Fever AND (bulging fontanelle OR convulsions) AND (lethargic OR unresponsive/unconscious)
+
+neonatal_meningitis_kalter <- function( fever, bulging_fontanelle, convulsions, lethargic, unconscious ){
+  return( fever & (bulging_fontanelle | convulsions) & (lethargic | unconscious) )
+}
+
+# Neonatal diarrhea (Kalter) -----
+
+# More frequent loose or liquid stools than usual AND more than 4 stools on the day the diarrhea was most frequent
+
+neonatal_diarrhea_kalter <- function( diarrhea, number_stools ){
+  return( diarrhea & (number_stools > 4) )
+}
+
+# Neonatal pneumonia (Kalter) -----
+
+# (Fast breathing lasting 1 day or more OR difficult breathing lasting 1 day or more and lasting until death)
+# AND
+# 2 or more of the following 3 signs: (chest indrawing, grunting, never cried OR stopped crying)
+
+neonatal_pneumonia_kalter <- function( days_difficulty_breathing, days_fast_breathing, chest_indrawing, 
+                                       noisy_breathing, baby_cry, stop_ability_to_cry ){
+  return( ( ( days_fast_breathing >= 1 ) | ( days_difficulty_breathing >= 1) ) &
+          ( chest_indrawing + noisy_breathing + (!baby_cry | stop_ability_to_cry) > 2 ) )
+}
+
+# Neonatal possible diarrhea (Kalter) -----
+
+#  More frequent loose or liquid stools than usual AND VA sepsis (see below) AND No VA diarrhea
+
+neonatal_possible_diarrhea_kalter <- function( diarrhea, fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
+                                               stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing){
+  return( diarrhea & sepsis_kalter(fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
+                                   stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing) )
+}
+
+# Neonatal possible pneumonia (Kalter) -----
+
+# Difficult breathing AND VA sepsis AND No VA pneumonia
+
+neonatal_possible_pneumonia_kalter <- function( difficulty_breathing, fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
+                                                stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing){
+  return( difficulty_breathing & sepsis_kalter(fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
+                                               stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing) )
+}
+
+# Sepsis (Kalter) -----
+
+# Fever OR cold to touch OR 2 or more of the following 7 signs: 
+# (fever OR cold to touch, did not suckle normally on the first day of life OR stopped suckling, convulsions, 
+# vomited everything, stopped crying, lethargic OR unconscious, chest indrawing OR grunting)
+
+sepsis_kalter <- function( fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
+                           stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing){
+  return( (fever | cold_touch) |
+          ( (fever | cold_touch) + (!suckle_feed | stop_suckle) + convulsions + vomit + stop_ability_to_cry + 
+              (lethargic | unconscious) + (chest_indrawing | noisy_breathing) > 2 ) )
+}
+
+# Neonatal jaundice (Kalter) -----
+
+# Yellow skin or yellow eyes 
+# AND 
+# (stopped being able to suckle normally OR lethargic OR unresponsive/unconscious) 
+# AND 
+# No fever or hypothermia
+
+neonatal_jaundice_kalter <- function( jaundice, stop_suckle, lethargic, unconscious, fever ){
+  return( jaundice & ( stop_suckle | lethargic | unconscious ) & !fever )
+}
+
+# Neonatal hemorrhagic syndrome (Kalter) -----
+
+# Bleeding from anywhere AND No fever or cold to touch
+
+neonatal_hemorrhagic_kalter <- function( bled_anywhere, fever, cold_touch ){
+  return( bled_anywhere & (!fever | cold_touch) )
+}
+
+# Sudden unexplained death (Kalter) -----
+
+# Died suddenly without appearing ill AND No illness signs or symptoms
+
+neonatal_sudden_kalter <- function( die_suddenly, appear_healthy ){
+  return( die_suddenly | appear_healthy )
+}
+
+# Preterm delivery (Kalter) -----
+
+# Pregnancy duration less than 8 months
+
+preterm_kalter <- function( months_pregnancy ){
+  return( months_pregnancy < 8 )
+}
+
+```
+
+## Liu's EAVA for children
+
+```{r echo=TRUE, eval=FALSE}
+
+# CHILD causes of death according to Liu -----
+
+# Measles (Liu) -----
+
+# a. Age at death>=6 months;
+# AND
+# b. Measles-type rash on body and face;
+# AND
+# c. Accompanied by fever;
+# AND
+# d. With at least 1 of the following specific symptoms: dry cough, or red or runny eyes.
+
+measles_liu <- function( age_days, fever, measles_rash, cough, red_eyes ){
+  return( (age_days > 180) & measles_rash & fever & (cough | red_eyes) )
+}
+
+# Meningitis (Liu) -----
+
+# a. Age at death>=29 days;
+# AND
+# b. Fever;
+# AND
+# c. Convulsions;
+# AND
+# d1. Stiff neck;
+# OR
+# d2. Bulging fontanelle;
+# AND
+# e. With at least 1 of the following specific symptoms: unconscious.
+
+meningitis_liu <- function( fever, convulsions, stiff_neck, bulging_fontanelle, unconscious ){
+  return( fever & convulsions & ( stiff_neck | bulging_fontanelle ) & unconscious )
+}
+
+# Malaria (Liu) -----
+
+# a. Age at death>=29 days;
+# AND
+# b. Fever;
+# AND
+# c. With at least 1 of the following specific symptoms: convulsions, difficult breathing, unresponsive, or pallor;
+
+malaria_liu <- function( fever, difficulty_breathing, convulsions, unresponsive ) {
+  return( fever & (difficulty_breathing | convulsions | unresponsive) )
+}
+
+# AIDS (Liu) -----
+
+# a. Age at death>=29 days;
+# AND
+# b1. Jaundice;
+# OR
+# b2. Chronic diarrhea > 1 month;
+# OR
+# b3. Chronic fever > 1 month;
+# OR
+# b4. Wasting defined as having all the 4 following
+# symptoms: paleness, hair color change, edema legs, dry
+# scaly skin;
+# OR
+# b5. Cough or trouble breathing lasting 3-27 days with
+# fever but not recent TB.
+
+aids_liu <- function( jaundice, fever, days_diarrhea, days_fever, pale, hair_change, swollen_legs_feet, days_cough, days_difficulty_breathing, tb ){
+  return( jaundice | (days_diarrhea >= 29) | (days_fever >= 29) | ( pale & hair_change & swollen_legs_feet ) | 
+            ( ((days_cough >= 3) | (days_difficulty_breathing >= 3)) & fever & !tb ) )
+}
+
+# Diarrhea (Liu) -----
+
+# a. Age at death>=29 days;
+# AND
+# b1. Frequent loose or liquid stools starting from 1 to 13
+# days before death and continued until death;
+# AND
+# b2. With a peak number of 6 or more stools in 24 hours;
+# AND
+# b3. At least 2 of the 6 following specific symptoms were
+# reported: weakness, dry mouth, sunken eyes, loose skin,
+# depressed fontanels, and no or very little urine;
+
+diarrhea_liu <- function( diarrhea, days_diarrhea, number_stools, sunken_eye, sunken_fontanelle ){
+  return( (diarrhea & (days_diarrhea < 14) & (number_stools >= 6) & (sunken_eye & sunken_fontanelle)) | 
+            (diarrhea & (days_diarrhea >= 14)) )
+}
+
+# Acute Respiratory Infection (Liu) -----
+
+# a. Age at death>=29 days;
+# AND
+# b1. Had a cough that started at least 3 days before
+# death;
+# OR
+# b2. Difficulty breathing that started at least 1 day before
+# death;
+# AND
+# c. Had at least 2 of the following 6 specific symptoms: noisy
+# breathing, grunting, wheezing, nostril flaring, or chest indrawing.
+
+ari_liu <- function( days_cough, difficulty_breathing, noisy_breathing, chest_indrawing, flaring_nostrils ){
+  return( ((days_cough >= 3) | difficulty_breathing ) & ( noisy_breathing + chest_indrawing + flaring_nostrils >= 2 ) )
+}
+
+# Possible pneumonia (Liu) -----
+
+# a. Age at death>=29 days;
+# AND
+# b. Had at least 2 of the following signs of serious infection:
+#   difficult breathing, chest indrawing, convulsions, and fever;
+# AND
+# c. Cough or difficult breathing.
+
+possible_pneumonia_liu <- function( cough, difficulty_breathing, chest_indrawing, fever, convulsions ){
+  return( ( difficulty_breathing + chest_indrawing + convulsions + fever >= 2 ) & (cough | difficulty_breathing) )
+}
+
+# Possible diarrhea (Liu) -----
+
+# a. Age at death>=29 days ;
+# AND
+# b. The child had 2+ signs of serious infection: difficult
+# breathing, chest indrawing, convulsions, and fever;
+# AND
+# c. Diarrhea.
+
+possible_diarrhea_liu <- function( diarrhea, difficulty_breathing, chest_indrawing, fever, convulsions ){
+  return( ( difficulty_breathing + chest_indrawing + convulsions + fever >= 2 ) & diarrhea )
+}
+
+```
+
+# References

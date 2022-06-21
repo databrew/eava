@@ -237,7 +237,7 @@ cod <- function(responses, format, algo ){
       causes <- c( causes, "Dysentery" )
     }
     
-    if( diarrhea_kalter(days_diarrhea, bloody_stool) ){
+    if( diarrhea_kalter(diarrhea, days_diarrhea, bloody_stool, number_stools) ){
       causes <- c( causes, "Diarrhea" )
     }
     
@@ -1394,23 +1394,13 @@ appear_healthy_p <- function( responses ){
 
 # Injury -----
 
-injury <- function( responses ){
-  questions <- c("injury_accident", "road_accident", "venomous_animal", "animal", "burn",
-                 "drown", "injury_fall", "other_injury", "poisoning", "assault")
-  questions <- questions[ which( questions %in% names( responses )) ]
-  answers <- responses %>% select( all_of(questions) ) 
-  if(any(!is.na(answers))) {
-    if (any(answers == "yes", na.rm = TRUE)) {
-      return(TRUE)
-    } else{
-      return(FALSE)
-    }
-  } else{ 
-    return(FALSE)
-  }
-}
+# Kalter :
 
-# Injury -----
+# Suffered from motor vehicle accident, fall, drowning, poisoning, venomous bite or sting, burn, violence or other injury
+# AND 
+# (Died 1 day or less after the injury AND the illness lasted 1 day or less) OR 
+# (Injury and No other VA diagnosis (except malnutrition allowed)) OR 
+# (Injury that was the first illness sign/symptom AND had VA other infection or fever))
 
 injury <- function( responses ){
   questions <- c("injury_accident", "road_accident", "venomous_animal", "animal", "burn",
@@ -1432,6 +1422,12 @@ injury <- function( responses ){
 
 # AIDS (Kalter) -----
 
+# (Swelling in the armpits OR a whitish rash inside the mouth/on the tongue)
+# AND
+# 3 or more of the following 6 signs: 
+# (limbs became very thin, protruding belly, more frequent loose/liquid stools than usual for more than 30 days, 
+# fever or a skin rash for more than 30 days, fast breathing, chest indrawing)
+
 aids_kalter <- function( armpits, rash_mouth, thin_limbs, protruding_abdomen, fast_breathing, 
                   chest_indrawing, days_diarrhea, days_fever, days_rash ){
   if( (armpits | rash_mouth) ){
@@ -1444,11 +1440,23 @@ aids_kalter <- function( armpits, rash_mouth, thin_limbs, protruding_abdomen, fa
 
 # Malnutrition (underlying) (Kalter) -----
 
+# Limbs became very thin during the fatal illness OR had swollen legs or feet during the illness
+# AND
+# One of these was the first symptom of the illness
+
 underlying_malnutrition_kalter <- function( thin_limbs, swollen_legs_feet ){
   return( thin_limbs | swollen_legs_feet )
 }
 
 # Measles (Kalter) -----
+
+# Child's age greater than or equal to 120 days 
+# AND 
+# rash for 3 or more days 
+# AND
+# fever for 3 or more days 
+# AND 
+# the rash started on the face
 
 measles_kalter <- function( age_days, days_rash, days_fever ){
   return( (age_days > 120) & (days_rash >= 3) & (days_fever >= 3) )
@@ -1456,11 +1464,17 @@ measles_kalter <- function( age_days, days_rash, days_fever ){
 
 # Meningitis (Kalter) -----
 
+# Fever AND (stiff neck OR bulging fontanelle)
+
 meningitis_kalter <- function( fever, stiff_neck, bulging_fontanelle ){
   return( fever & ( stiff_neck | bulging_fontanelle ) )
 }
 
 # Dysentery (Kalter) -----
+
+# More frequent loose or liquid stools than usual AND more than 4 stools on the day with the most stools AND blood in the stools
+# OR
+# More frequent loose or liquid stools than usual for more than 14 days AND blood in the stools
 
 dysentery_kalter <- function( days_diarrhea, bloody_stool ){
   return( (days_diarrhea > 14) & bloody_stool )
@@ -1468,11 +1482,19 @@ dysentery_kalter <- function( days_diarrhea, bloody_stool ){
 
 # Diarrhea (Kalter) -----
 
-diarrhea_kalter <- function( days_diarrhea, bloody_stool ){
-  return( (days_diarrhea > 14) & !bloody_stool )
+# More frequent loose or liquid stools than usual AND more than 4 stools on the day with the most stools AND No blood in the stools
+# OR
+# More frequent loose or liquid stools than usual for more than 14 days AND No blood in stools
+
+diarrhea_kalter <- function( diarrhea, days_diarrhea, bloody_stool, number_stools ){
+  return( (diarrhea & (number_stools > 4) & !bloody_stool ) | 
+          ( (days_diarrhea > 14) & !bloody_stool ) )
 }
 
 # Pertussis (Kalter) -----
+
+# Cough more than 14 days AND 
+# (severe cough OR vomited after coughing OR stridor)
 
 pertussis_kalter <- function( days_cough, cough_severe_available, cough_severe, cough_vomit_available, cough_vomit ){
   if( cough_severe_available & cough_vomit_available ){
@@ -1488,12 +1510,22 @@ pertussis_kalter <- function( days_cough, cough_severe_available, cough_severe, 
 
 # Pneumonia (Kalter) -----
 
+# (Cough more than 2 days OR difficult breathing more than 2 days)
+# AND
+# (Fast breathing more than 2 days OR chest indrawing OR grunting)
+
 pneumonia_kalter <- function( days_cough, days_difficulty_breathing, days_fast_breathing, chest_indrawing, noisy_breathing ){
   return( ( (days_cough > 2) | (days_difficulty_breathing > 2)) & 
             ( (days_fast_breathing > 2) | chest_indrawing | noisy_breathing ) )
 }
 
 # Malaria (Kalter) -----
+
+# Fever that continued till death AND was on and off in character AND No stiff neck AND 
+# No bulging fontanelle AND (pallor OR difficult breathing OR convulsions OR unconscious till death)
+# OR
+# Fever that continued till death AND was severe fever AND No stiff neck AND 
+# No bulging fontanelle AND (pallor OR convulsions OR unconscious till death)
 
 malaria_kalter <- function( fever_continue, fever_on_off, fever_severe, stiff_neck, bulging_fontanelle, 
                      difficulty_breathing, convulsions, unconscious ) {
@@ -1503,17 +1535,34 @@ malaria_kalter <- function( fever_continue, fever_on_off, fever_severe, stiff_ne
 
 # Possible dysentery (Kalter) -----
 
+# More frequent loose or liquid stools than usual AND 
+# (fever OR convulsions OR unconscious up till death) AND 
+# blood in the stools AND 
+# No VA dysentery
+
 possible_dysentery_kalter <- function( diarrhea, fever, convulsions, unconscious, bloody_stool ){
   return( diarrhea & (fever | convulsions | unconscious) & bloody_stool )
 }
 
 # Possible diarrhea (Kalter) -----
 
+# More frequent loose or liquid stools than usual AND 
+# (fever OR convulsions OR unconscious up till death) AND 
+# No blood in the stools AND 
+# No VA diarrhea
+
 possible_diarrhea_kalter <- function( diarrhea, fever, convulsions, unconscious, bloody_stool ){
   return( diarrhea & (fever | convulsions | unconscious) & !bloody_stool )
 }
 
 # Possible pneumonia (Kalter) -----
+
+# (Cough or difficult breathing) OR (Fast breathing AND (chest indrawing OR stridor OR grunting OR wheezing))
+# AND
+# (Severe cough OR post–tussive vomiting OR fast breathing OR chest indrawing OR grunting OR stridor OR wheezing OR 
+# fever OR convulsions OR unconscious up till death) 
+# AND 
+# No VA Pertussis AND No VA pneumonia
 
 possible_pneumonia_kalter <- function( cough, difficulty_breathing, fast_breathing, chest_indrawing, noisy_breathing, 
                                 cough_severe, cough_vomit, fever, convulsions, unconscious ){
@@ -1523,11 +1572,16 @@ possible_pneumonia_kalter <- function( cough, difficulty_breathing, fast_breathi
 
 # Hemorrhagic fever (Kalter) -----
 
+# Fever AND (bled from anywhere OR had areas of the skin that turned black)
+
 hemorrhagic_fever_kalter <- function( fever, bled_anywhere, skin_black ){
   return( fever & (bled_anywhere | skin_black) )
 }
 
 # Other infection (Kalter) -----
+
+# Fever AND 
+# (rash on trunk, abdomen or everywhere OR convulsions OR unconscious up till death)
 
 other_infection_kalter <- function( fever, rash_trunk, convulsions, unconscious ){
   return( fever & (rash_trunk | convulsions | unconscious) )
@@ -1535,11 +1589,16 @@ other_infection_kalter <- function( fever, rash_trunk, convulsions, unconscious 
 
 # Possible malaria (Kalter) -----
 
+# Fever AND No other VA infectious causes of death
+
 possible_malaria_kalter <- function( fever ){
   return( fever )
 }
 
 # Malnutrition (Kalter) -----
+
+# Limbs became very thin during the fatal illness OR 
+# had swollen legs or feet during the illness
 
 malnutrition_kalter <- function( thin_limbs, swollen_legs_feet ){
   return( thin_limbs | swollen_legs_feet )
@@ -1549,11 +1608,31 @@ malnutrition_kalter <- function( thin_limbs, swollen_legs_feet ){
 
 # Measles (Liu) -----
 
+# a. Age at death>=6 months;
+# AND
+# b. Measles-type rash on body and face;
+# AND
+# c. Accompanied by fever;
+# AND
+# d. With at least 1 of the following specific symptoms: dry cough, or red or runny eyes.
+
 measles_liu <- function( age_days, fever, measles_rash, cough, red_eyes ){
   return( (age_days > 180) & measles_rash & fever & (cough | red_eyes) )
 }
 
 # Meningitis (Liu) -----
+
+# a. Age at death>=29 days;
+# AND
+# b. Fever;
+# AND
+# c. Convulsions;
+# AND
+# d1. Stiff neck;
+# OR
+# d2. Bulging fontanelle;
+# AND
+# e. With at least 1 of the following specific symptoms: unconscious.
 
 meningitis_liu <- function( fever, convulsions, stiff_neck, bulging_fontanelle, unconscious ){
   return( fever & convulsions & ( stiff_neck | bulging_fontanelle ) & unconscious )
@@ -1561,11 +1640,32 @@ meningitis_liu <- function( fever, convulsions, stiff_neck, bulging_fontanelle, 
 
 # Malaria (Liu) -----
 
+# a. Age at death>=29 days;
+# AND
+# b. Fever;
+# AND
+# c. With at least 1 of the following specific symptoms: convulsions, difficult breathing, unresponsive, or pallor;
+
 malaria_liu <- function( fever, difficulty_breathing, convulsions, unresponsive ) {
   return( fever & (difficulty_breathing | convulsions | unresponsive) )
 }
 
 # AIDS (Liu) -----
+
+# a. Age at death>=29 days;
+# AND
+# b1. Jaundice;
+# OR
+# b2. Chronic diarrhea > 1 month;
+# OR
+# b3. Chronic fever > 1 month;
+# OR
+# b4. Wasting defined as having all the 4 following
+# symptoms: paleness, hair color change, edema legs, dry
+# scaly skin;
+# OR
+# b5. Cough or trouble breathing lasting 3-27 days with
+# fever but not recent TB.
 
 aids_liu <- function( jaundice, fever, days_diarrhea, days_fever, pale, hair_change, swollen_legs_feet, days_cough, days_difficulty_breathing, tb ){
   return( jaundice | (days_diarrhea >= 29) | (days_fever >= 29) | ( pale & hair_change & swollen_legs_feet ) | 
@@ -1574,6 +1674,17 @@ aids_liu <- function( jaundice, fever, days_diarrhea, days_fever, pale, hair_cha
 
 # Diarrhea (Liu) -----
 
+# a. Age at death>=29 days;
+# AND
+# b1. Frequent loose or liquid stools starting from 1 to 13
+# days before death and continued until death;
+# AND
+# b2. With a peak number of 6 or more stools in 24 hours;
+# AND
+# b3. At least 2 of the 6 following specific symptoms were
+# reported: weakness, dry mouth, sunken eyes, loose skin,
+# depressed fontanels, and no or very little urine;
+
 diarrhea_liu <- function( diarrhea, days_diarrhea, number_stools, sunken_eye, sunken_fontanelle ){
   return( (diarrhea & (days_diarrhea < 14) & (number_stools >= 6) & (sunken_eye & sunken_fontanelle)) | 
             (diarrhea & (days_diarrhea >= 14)) )
@@ -1581,11 +1692,29 @@ diarrhea_liu <- function( diarrhea, days_diarrhea, number_stools, sunken_eye, su
 
 # Acute Respiratory Infection (Liu) -----
 
+# a. Age at death>=29 days;
+# AND
+# b1. Had a cough that started at least 3 days before
+# death;
+# OR
+# b2. Difficulty breathing that started at least 1 day before
+# death;
+# AND
+# c. Had at least 2 of the following 6 specific symptoms: noisy
+# breathing, grunting, wheezing, nostril flaring, or chest indrawing.
+
 ari_liu <- function( days_cough, difficulty_breathing, noisy_breathing, chest_indrawing, flaring_nostrils ){
   return( ((days_cough >= 3) | difficulty_breathing ) & ( noisy_breathing + chest_indrawing + flaring_nostrils >= 2 ) )
 }
 
 # Possible pneumonia (Liu) -----
+
+# a. Age at death>=29 days;
+# AND
+# b. Had at least 2 of the following signs of serious infection:
+#   difficult breathing, chest indrawing, convulsions, and fever;
+# AND
+# c. Cough or difficult breathing.
 
 possible_pneumonia_liu <- function( cough, difficulty_breathing, chest_indrawing, fever, convulsions ){
   return( ( difficulty_breathing + chest_indrawing + convulsions + fever >= 2 ) & (cough | difficulty_breathing) )
@@ -1593,11 +1722,26 @@ possible_pneumonia_liu <- function( cough, difficulty_breathing, chest_indrawing
 
 # Possible diarrhea (Liu) -----
 
+# a. Age at death>=29 days ;
+# AND
+# b. The child had 2+ signs of serious infection: difficult
+# breathing, chest indrawing, convulsions, and fever;
+# AND
+# c. Diarrhea.
+
 possible_diarrhea_liu <- function( diarrhea, difficulty_breathing, chest_indrawing, fever, convulsions ){
   return( ( difficulty_breathing + chest_indrawing + convulsions + fever >= 2 ) & diarrhea )
 }
 
 # NEONATE causes of death according to Kalter
+
+# Neonatal tetanus (Kalter) -----
+
+# (Age 3–27 days at death AND convulsions or spasms)
+# AND EITHER 
+# ((Able to suckle normally during the first day of life and stopped being able to suckle) 
+# OR 
+# (cried within 5 minutes after birth and stopped being able to cry))
 
 neonatal_tetanus_kalter <- function( age_days, convulsions, suckle_feed, stop_suckle, 
                                      cry_after_birth, baby_cry_after_birth, stop_ability_to_cry ){
@@ -1605,31 +1749,65 @@ neonatal_tetanus_kalter <- function( age_days, convulsions, suckle_feed, stop_su
           ( ( suckle_feed & stop_suckle ) | ( (cry_after_birth | baby_cry_after_birth) & stop_ability_to_cry ) ) )
 }
 
+# Congenital malformation (Kalter) -----
+
+# Gross malformation present at birth
+
 malformation_kalter <- function( malformation ){
   return( malformation )
 }
+
+# Birth asphyxia (Kalter) -----
+
+# Neonatal respiratory depression: (Did not cry within 5 minutes after birth OR did not breathe immediately after birth)
+# AND
+# Neonatal encephalopathy: (Not able to suckle normally in the first day of life OR convulsions/spasms OR lethargy) OR 0 days old at death
 
 asphyxia_kalter <- function( age_days, cry_after_birth, baby_cry_after_birth, baby_breathe_after_birth, 
                              suckle_feed, convulsions, lethargic ){
   return( ( !(cry_after_birth | baby_cry_after_birth) | !baby_breathe_after_birth ) &
           ( !suckle_feed  | convulsions | lethargic | (age_days==0) ) )
- }
+}
+
+# Birth injury (Kalter) -----
+
+# Bruises or signs of injury on the body at birth
 
 birth_injury_kalter <- function( bruises_injury, sign_injury_broken_bones ){
   return( bruises_injury | sign_injury_broken_bones )
 }
 
+# Preterm delivery with respiratory distress syndrome (Kalter) -----
+
+# Pregnancy duration less than 9 months
+# AND
+# (Fast breathing starting on day 0 AND no fever AND no cold to touch)
+
 preterm_respiratory_distress_kalter <- function( months_pregnancy, fast_breathing, fever, cold_touch ){
   return( ( months_pregnancy < 9 ) & ( fast_breathing & !fever & !cold_touch ) )
 }
+
+# Neonatal meningitis (Kalter) -----
+
+# Fever AND (bulging fontanelle OR convulsions) AND (lethargic OR unresponsive/unconscious)
 
 neonatal_meningitis_kalter <- function( fever, bulging_fontanelle, convulsions, lethargic, unconscious ){
   return( fever & (bulging_fontanelle | convulsions) & (lethargic | unconscious) )
 }
 
+# Neonatal diarrhea (Kalter) -----
+
+# More frequent loose or liquid stools than usual AND more than 4 stools on the day the diarrhea was most frequent
+
 neonatal_diarrhea_kalter <- function( diarrhea, number_stools ){
   return( diarrhea & (number_stools > 4) )
 }
+
+# Neonatal pneumonia (Kalter) -----
+
+# (Fast breathing lasting 1 day or more OR difficult breathing lasting 1 day or more and lasting until death)
+# AND
+# 2 or more of the following 3 signs: (chest indrawing, grunting, never cried OR stopped crying)
 
 neonatal_pneumonia_kalter <- function( days_difficulty_breathing, days_fast_breathing, chest_indrawing, 
                                        noisy_breathing, baby_cry, stop_ability_to_cry ){
@@ -1637,17 +1815,31 @@ neonatal_pneumonia_kalter <- function( days_difficulty_breathing, days_fast_brea
           ( chest_indrawing + noisy_breathing + (!baby_cry | stop_ability_to_cry) > 2 ) )
 }
 
+# Neonatal possible diarrhea (Kalter) -----
+
+#  More frequent loose or liquid stools than usual AND VA sepsis (see below) AND No VA diarrhea
+
 neonatal_possible_diarrhea_kalter <- function( diarrhea, fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
                                                stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing){
   return( diarrhea & sepsis_kalter(fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
                                    stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing) )
 }
 
+# Neonatal possible pneumonia (Kalter) -----
+
+# Difficult breathing AND VA sepsis AND No VA pneumonia
+
 neonatal_possible_pneumonia_kalter <- function( difficulty_breathing, fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
                                                 stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing){
   return( difficulty_breathing & sepsis_kalter(fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
                                                stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing) )
 }
+
+# Sepsis (Kalter) -----
+
+# Fever OR cold to touch OR 2 or more of the following 7 signs: 
+# (fever OR cold to touch, did not suckle normally on the first day of life OR stopped suckling, convulsions, 
+# vomited everything, stopped crying, lethargic OR unconscious, chest indrawing OR grunting)
 
 sepsis_kalter <- function( fever, cold_touch, suckle_feed, stop_suckle, convulsions, vomit, 
                            stop_ability_to_cry, lethargic, unconscious, chest_indrawing, noisy_breathing){
@@ -1656,17 +1848,37 @@ sepsis_kalter <- function( fever, cold_touch, suckle_feed, stop_suckle, convulsi
               (lethargic | unconscious) + (chest_indrawing | noisy_breathing) > 2 ) )
 }
 
+# Neonatal jaundice (Kalter) -----
+
+# Yellow skin or yellow eyes 
+# AND 
+# (stopped being able to suckle normally OR lethargic OR unresponsive/unconscious) 
+# AND 
+# No fever or hypothermia
+
 neonatal_jaundice_kalter <- function( jaundice, stop_suckle, lethargic, unconscious, fever ){
   return( jaundice & ( stop_suckle | lethargic | unconscious ) & !fever )
 }
+
+# Neonatal hemorrhagic syndrome (Kalter) -----
+
+# Bleeding from anywhere AND No fever or cold to touch
 
 neonatal_hemorrhagic_kalter <- function( bled_anywhere, fever, cold_touch ){
   return( bled_anywhere & (!fever | cold_touch) )
 }
 
+# Sudden unexplained death (Kalter) -----
+
+# Died suddenly without appearing ill AND No illness signs or symptoms
+
 neonatal_sudden_kalter <- function( die_suddenly, appear_healthy ){
   return( die_suddenly | appear_healthy )
 }
+
+# Preterm delivery (Kalter) -----
+
+# Pregnancy duration less than 8 months
 
 preterm_kalter <- function( months_pregnancy ){
   return( months_pregnancy < 8 )
