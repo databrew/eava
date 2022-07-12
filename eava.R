@@ -26,7 +26,7 @@ supported_formats <- c("champs1", "champs2", "champs3", "child_mali",
 get_causes <- function(babel_data, format, algo = "kalter") {
   
   question_names <<- names( babel_data )
-  current_row <<- 1
+  # current_row <<- 1
   # check availability of certain indicators -- avoids errors when trying to access nonexistent columns by name 
   # depends on format, not on responses for an individual decedent, so precedes response-dependent functions
   # (intentionally global for easy access in other EAVA functions!)
@@ -133,7 +133,7 @@ cod <- function(responses, format, algo ){
   # validate age -----
   
   if( is.na( age_days ) | age_days < 0){
-    return( data.frame( age_days=age_days, age_group="Unknown", causes="Unknown") )
+    return( data.frame( format = format, algo = algo, age_days=age_days, age_group="Unknown", causes="Unknown") )
   } else if( age_days < 29 ){
     age_group <- "Neonate"
   } else{
@@ -284,9 +284,9 @@ cod <- function(responses, format, algo ){
     }
     
     if( length( causes ) > 0){
-      return( data.frame( age_days=age_days, age_group=age_group, causes=paste0(causes, collapse=", ")) )
+      return( data.frame( format = format, algo = algo, age_days=age_days, age_group=age_group, causes=paste0(causes, collapse=", ")) )
     } else{
-      return( data.frame( age_days=age_days, age_group=age_group, causes="Unspecified") )
+      return( data.frame( format = format, algo = algo, age_days=age_days, age_group=age_group, causes="Unspecified") )
     }
     
   } else if( algo == "liu" & age_group == "Child"){ 
@@ -331,9 +331,9 @@ cod <- function(responses, format, algo ){
     }
   
     if( length( causes ) > 0){
-      return( data.frame( age_days=age_days, age_group=age_group, causes=paste0(causes, collapse=", ")) )
+      return( data.frame( format = format, algo = algo, age_days=age_days, age_group=age_group, causes=paste0(causes, collapse=", ")) )
     } else{
-      return( data.frame( age_days=age_days, age_group=age_group, causes="Unspecified") )
+      return( data.frame( format = format, algo = algo, age_days=age_days, age_group=age_group, causes="Unspecified") )
     }
     
   } else if( algo == "kalter" & age_group == "Neonate"){
@@ -407,9 +407,9 @@ cod <- function(responses, format, algo ){
     }
     
     if( length( causes ) > 0){
-      return( data.frame( age_days=age_days, age_group=age_group, causes=paste0(causes, collapse=", ")) )
+      return( data.frame( format = format, algo = algo, age_days=age_days, age_group=age_group, causes=paste0(causes, collapse=", ")) )
     } else{
-      return( data.frame( age_days=age_days, age_group=age_group, causes="Unspecified") )
+      return( data.frame( format = format, algo = algo, age_days=age_days, age_group=age_group, causes="Unspecified") )
     }
     
   } else if( algo == "liu" & age_group == "Neonate"){
@@ -417,9 +417,9 @@ cod <- function(responses, format, algo ){
     # Liu neonate -----
     
     if( length( causes ) > 0){
-      return( data.frame( age_days=age_days, age_group=age_group, causes=paste0(causes, collapse=", ")) )
+      return( data.frame( format = format, algo = algo, age_days=age_days, age_group=age_group, causes=paste0(causes, collapse=", ")) )
     } else{
-      return( data.frame( age_days=age_days, age_group=age_group, causes="Unspecified") )
+      return( data.frame( format = format, algo = algo, age_days=age_days, age_group=age_group, causes="Unspecified") )
     }
     
   }

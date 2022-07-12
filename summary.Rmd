@@ -237,6 +237,9 @@ diarrhea_table( df )
 
 ```{r}
 causes <- get_causes(df, format="champs2", algo="kalter")
+all_causes <- causes %>%
+  mutate( country = "Mali",
+          filename = "CHAMPS_Verbal_Autopsy_Form_results_babel.csv")
 age_group_table( causes )
 ```
 
@@ -271,6 +274,10 @@ print_causes( causes, age_group = "Neonate" )
 
 ```{r}
 causes <- get_causes(df, format="champs2", algo="liu")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Mali", 
+                               filename = "CHAMPS_Verbal_Autopsy_Form_results_babel.csv") )
 print_causes( causes )
 ```
 
@@ -289,6 +296,10 @@ diarrhea_table( df )
 
 ```{r}
 causes <- get_causes(df, format="champs2", algo="kalter")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Mali", 
+                               filename = "CHAMPS_Verbal_Autopsy_Form_v2_04_1_results_babel.csv") )
 age_group_table( causes )
 ```
 
@@ -308,6 +319,10 @@ print_causes( causes, age_group = "Neonate" )
 
 ```{r}
 causes <- get_causes(df, format="champs2", algo="liu")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Mali", 
+                               filename = "CHAMPS_Verbal_Autopsy_Form_v2_04_1_results_babel.csv") )
 print_causes( causes )
 ```
 
@@ -326,6 +341,10 @@ diarrhea_table( df )
 
 ```{r}
 causes <- get_causes(df, format="champs2", algo="kalter")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Mali", 
+                               filename = "CHAMPS_Verbal_Autopsy_Form_v2_04_results_babel.csv") )
 age_group_table( causes )
 ```
 
@@ -345,6 +364,10 @@ print_causes( causes, age_group = "Neonate" )
 
 ```{r}
 causes <- get_causes(df, format="champs2", algo="liu")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Mali", 
+                               filename = "CHAMPS_Verbal_Autopsy_Form_v2_04_results_babel.csv") )
 print_causes( causes )
 ```
 
@@ -363,6 +386,10 @@ diarrhea_table( df )
 
 ```{r}
 causes <- get_causes(df, format="champs1", algo="kalter")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Mali", 
+                               filename = "VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel.csv") )
 age_group_table( causes )
 ```
 
@@ -382,6 +409,10 @@ print_causes( causes, age_group = "Neonate" )
 
 ```{r}
 causes <- get_causes(df, format="champs1", algo="liu")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Mali", 
+                               filename = "VA_Death_of_a_child_under_4_weeks_to_59_months_results_21MAR2018_babel.csv") )
 print_causes( causes )
 ```
 
@@ -402,6 +433,10 @@ diarrhea_table( df )
 
 ```{r}
 causes <- get_causes(df, format="c16", algo="kalter")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Gambia", 
+                               filename = "VA_Child_WHO2016_babel.csv") )
 age_group_table( causes )
 ```
 
@@ -421,6 +456,10 @@ print_causes( causes, age_group = "Neonate" )
 
 ```{r}
 causes <- get_causes(df, format="c16", algo="liu")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Gambia", 
+                               filename = "VA_Child_WHO2016_babel.csv") )
 print_causes( causes )
 ```
 
@@ -439,6 +478,10 @@ diarrhea_table( df )
 
 ```{r}
 causes <- get_causes(df, format="c12_16", algo="kalter")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Gambia", 
+                               filename = "VA_ChildForm_WHO2012_babel.csv") )
 age_group_table( causes )
 ```
 
@@ -458,6 +501,10 @@ print_causes( causes, age_group = "Neonate" )
 
 ```{r}
 causes <- get_causes(df, format="c12_16", algo="liu")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Gambia", 
+                               filename = "VA_ChildForm_WHO2012_babel.csv") )
 print_causes( causes )
 ```
 
@@ -476,6 +523,10 @@ diarrhea_table( df )
 
 ```{r}
 causes <- get_causes(df, format="c08_12", algo="kalter")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Gambia", 
+                               filename = "VA_Child_Indepth_2008-2012_clean duration_babel.csv") )
 age_group_table( causes )
 ```
 
@@ -495,6 +546,10 @@ print_causes( causes, age_group = "Neonate" )
 
 ```{r}
 causes <- get_causes(df, format="c08_12", algo="liu")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Gambia", 
+                               filename = "VA_Child_Indepth_2008-2012_clean duration_babel.csv") )
 print_causes( causes )
 ```
 
@@ -513,6 +568,10 @@ diarrhea_table( df )
 
 ```{r}
 causes <- get_causes(df, format="c08_12", algo="kalter")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Gambia", 
+                               filename = "VA_Child_Indepth_2008-2012_babel.csv") )
 age_group_table( causes )
 ```
 
@@ -532,6 +591,10 @@ print_causes( causes, age_group = "Neonate" )
 
 ```{r}
 causes <- get_causes(df, format="c08_12", algo="liu")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Gambia", 
+                               filename = "VA_Child_Indepth_2008-2012_babel.csv") )
 print_causes( causes )
 ```
 
@@ -550,6 +613,10 @@ diarrhea_table( df )
 
 ```{r}
 causes <- get_causes(df, format="c12_16", algo="kalter")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Gambia", 
+                               filename = "VA_Child_WHO2012-mid 2016_babel.csv") )
 age_group_table( causes )
 ```
 
@@ -569,6 +636,10 @@ print_causes( causes, age_group = "Neonate" )
 
 ```{r}
 causes <- get_causes(df, format="c12_16", algo="liu")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Gambia", 
+                               filename = "VA_Child_WHO2012-mid 2016_babel.csv") )
 print_causes( causes )
 ```
 
@@ -587,6 +658,10 @@ diarrhea_table( df )
 
 ```{r}
 causes <- get_causes(df, format="c16", algo="kalter")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Gambia", 
+                               filename = "VA_Child_WHO2016_babel.csv") )
 age_group_table( causes )
 ```
 
@@ -606,6 +681,10 @@ print_causes( causes, age_group = "Neonate" )
 
 ```{r}
 causes <- get_causes(df, format="c16", algo="liu")
+all_causes <- rbind( all_causes, 
+                     causes %>% 
+                       mutate( country = "Gambia", 
+                               filename = "VA_Child_WHO2016_babel.csv") )
 print_causes( causes )
 ```
 
